@@ -1,0 +1,25 @@
+name: Refresh arXiv data
+on:
+  schedule:
+    - cron: "7 * * * *"   # hourly
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lingfeed-arxiv   # each data source has its own queue, so a LingBuzz run never cancels an arXiv run
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 build_arxiv.py
+      - name: Commit changes
+        run: |
+          git config user.name "lingfeed-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add arxiv.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update arxiv.json"
+          # another source's job may have pushed a moment ago: catch up and try again
+          for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

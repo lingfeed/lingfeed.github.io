@@ -1,0 +1,26 @@
+name: Refresh Zenodo data
+on:
+  schedule:
+    - cron: "4,19,34,49 * * * *"   # every 15 minutes
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lingfeed-zenodo   # its own queue, so it never cancels or is cancelled by the other jobs
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # saves Zenodo's last 60 days for the page's first screen (and for the RSS feed)
+      - run: python3 build_zenodo.py
+      - name: Commit changes
+        run: |
+          git config user.name "lingfeed-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add zenodo-recent.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update zenodo-recent.json"
+          # another job may have pushed a moment ago: catch up and try again
+          for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

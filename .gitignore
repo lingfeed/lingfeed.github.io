@@ -1,0 +1,10 @@
+# Files that should never be uploaded to GitHub
+node_modules/
+package.json
+package-lock.json
+.wrangler/
+.DS_Store
+*.tmp
+__pycache__/
+about.log
+STATUS.md

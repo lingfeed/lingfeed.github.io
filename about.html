@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How LingFeed gathers linguistics preprints, what its dates and “updated” mean, and how often it refreshes.">
+<meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181816" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Social preview: these must be the full live address (https://lingfeed.github.io), not relative ones -->
+<link rel="canonical" href="https://lingfeed.github.io/about.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LingFeed">
+<meta property="og:title" content="How LingFeed works">
+<meta property="og:description" content="How LingFeed gathers linguistics preprints, what its dates and “updated” mean, and how often it refreshes.">
+<meta property="og:url" content="https://lingfeed.github.io/about.html">
+<meta property="og:image" content="https://lingfeed.github.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="LingFeed: new linguistics papers and preprints, in one feed">
+<meta name="twitter:card" content="summary_large_image">
+<title>About LingFeed</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --muted:#6b6b66; --line:#e2e1da; --link:#1a4f8b; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#181816; --fg:#e8e7e1; --muted:#9a9990; --line:#33322e; --link:#7db3f0; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 Georgia,"Times New Roman",serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  a { color:var(--link); text-decoration:none; } a:hover { text-decoration:underline; }
+  .back { font:14px system-ui,sans-serif; }
+  .topbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 18px; font:14px system-ui,sans-serif; }
+  .topbar nav { display:flex; gap:18px; } .topbar a { white-space:nowrap; }
+  h1 { font-size:28px; margin:12px 0 4px; }
+  h2 { font-size:19px; margin:30px 0 6px; padding-top:14px; border-top:1px solid var(--line); }
+  p { margin:8px 0; }
+  .lead { color:var(--muted); }
+  dl { margin:8px 0; } dt { font-weight:bold; margin-top:12px; } dd { margin:2px 0 0 0; }
+  table { border-collapse:collapse; width:100%; font:14px system-ui,sans-serif; margin:8px 0; }
+  code { font:13px ui-monospace,Menlo,monospace; background:rgba(127,127,127,.15); padding:0 4px; border-radius:3px; }
+  th, td { text-align:left; padding:6px 10px 6px 0; border-top:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; border-top:0; }
+  .note { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Back to LingFeed</a>
+    <nav aria-label="Site">
+      <a href="why.html">Why LingFeed?</a>
+      <a href="rss.html">RSS feed</a>
+    </nav>
+  </div>
+  <h1>About LingFeed</h1>
+  <p class="lead">LingFeed gathers new linguistics papers from several places and shows them in one list, newest first</p>
+
+
+ <h2>Where the listings come from</h2>
+  <dl>
+
+      <dt>LingBuzz</dt>
+    <dd>LingFeed reads LingBuzz’s public pages and keeps its own copy of the title, author, and keywords. All LingBuzz papers are covered by LingFeed. In our chronological feed, we list exact dates for LingBuzz papers posted after October 19, 2026. Before that, most of its dates are estimates (because LingBuzz does not publish upload dates; see below for more on how we estimate LingBuzz dates). Estimated dates are indicated with ~.</dd>
+
+    <dt>Zenodo (Linguistics and Language Science Press)</dt>
+    <dd>Zenodo is organized into communities. Currently there are two Zenodo communities we look at: Language Science Press and Linguistics. Our records  cover the full history of each community we check. Zenodo posts every new version of a paper as a separate record, so LingFeed shows the first version in the “New” view and later versions in the “New and Updated” view. </dd>
+
+
+
+    <dt>PsyArXiv and SocArXiv (Linguistics)</dt>
+    <dd>Linguistics is a listed subject in two preprint servers running on the Open Science Framework (OSF). LingFeed checks for preprints listed under this subject and keeps a copy of the metadata, including the abstract. LingFeed finds all papers tagged as “Linguistics” on either SocArXiv or PsyArXiv.</dd>
+
+    <dt>arXiv (Computation and Language)</dt>
+    <dd>LingFeed finds papers posted on arXiv for papers in its cs.CL category (Computation and Language), including papers cross-listed there from other categories. arXiv sees a much higher publication volume than other sources--about 200 papers/day, just in this category. To prevent arXiv listings from drowning out other listings, we uncheck the arXiv button by default on the home page. Make sure you check the box if you want to see these listings. We track only the most recent week or so. Older arXiv papers are not searchable here.</dd>
+  </dl>
+
+<dt> Cross-posted papers</dt>
+  <p>A paper posted on LingBuzz and another repository is listed once, with both badges. Because LingBuzz is less stable than other repositories, the main link for a paper will go to the first other repository where we spotted it (e.g. Zenodo, arXiv). If you want the LingBuzz copy, click on the LingBuzz badge.</p>
+
+
+  <h2>How often the data is refreshed</h2>
+  <table>
+    <tr><th>Source</th><th>Refreshed</th></tr>
+    <tr><td>Zenodo</td><td>About every 15 minutes; when you search, we look the data up live</td></tr>
+    <tr><td>LingBuzz</td><td>About every 15 minutes</td></tr>
+    <tr><td>arXiv, PsyArXiv, SocArXiv</td><td>About every hour</td></tr>
+  </table>
+  <p>The line under the title on the main page shows when each source’s stored data last changed. New papers can take a little longer to appear if a source itself is slow to publish them, as arXiv is at weekends (see below).</p>
+
+
+  <h2>Searching</h2>
+  <p>The first search box looks in titles, keywords and abstracts, and the second looks in author names only. If you use both, a paper must match both. Results keep the same date order as the list; it does not rank papers by relevance. </p>
+  <p>Unlike LingBuzz, LingFeed supports Boolean search and wildcard search. Here's a guide to search syntax:</p>
+  <table>
+    <tr><th>You type</th><th>It finds</th></tr>
+    <tr><td><code>tone sand</code></td><td>papers containing both, anywhere; words may be incomplete (“sand” finds “sandhi”)</td></tr>
+    <tr><td><code>phon*</code> or <code>*ology</code></td><td>words that start or end that way; <code>*</code> stands for any letters, <code>?</code> for one letter</td></tr>
+    <tr><td><code>“tone”</code></td><td>the whole word only (in quotes, “tone” no longer finds “stone”)</td></tr>
+    <tr><td><code>“tone sandhi”</code></td><td>the two whole words next to each other, in that order</td></tr>
+    <tr><td><code>tone OR vowel</code></td><td>either word (capital letters needed for AND, OR, NOT)</td></tr>
+    <tr><td><code>mandarin NOT tone</code> or <code>mandarin -tone</code></td><td>“mandarin” without “tone”</td></tr>
+    <tr><td><code>(tone OR vowel) AND mandarin</code></td><td>brackets group parts of a search</td></tr>
+    <tr><td><code>title:tone</code></td><td>the word in the title only; also <code>abstract:</code>, <code>keywords:</code>, <code>author:</code></td></tr>
+    <tr><td><code>phonolgy~</code></td><td>allows small spelling differences</td></tr>
+  </table>
+  <p>A plain word also matches inside longer words, so <code>phon</code> finds “phonology” and “telephone”. For more precision use a wildcard (<code>phon*</code> finds only words that start with it) or quotes (<code>“phon”</code> finds only that whole word). Capital letters and accents are ignored. In the author box, every word must match part of one author’s name, in any order, and <code>*</code> and <code>?</code> work there too. If a search cannot be read, for example because a bracket is not closed, LingFeed searches for its words instead.</p>
+
+<P>Zenodo is searched in full, by Zenodo’s own search engine. The other sources are searched only within the papers LingFeed has stored. LingBuzz abstracts are not stored, so only its titles, keywords and authors are searched, and arXiv and OSF abstracts are cut short.</P>
+
+
+
+
+  <h2>The Most clicked list</h2>
+  <p>This list shows the top 10 papers ranked by how many different LingFeed visitors clicked through to them over the last six months. It covers papers from every source in one list; it will show up the same way whichever checkmarks are ticked for different sources. Clicks through the LingFeed RSS feed are counted. Accessing the paper on its original site does not count toward the stats here.</p>
+
+
+  <p>The list is refreshed about every 30 minutes. Basic protections against bots and other types of misuse are in place. To keep the list fair, each visitor counts once per paper per day, however often they click. (LingFeed does not store IP addresses or personal details. To avoid counting the same visitor twice in a day, it uses a scrambled code that changes every day and is deleted after two days.)</p>
+
+
+
+  <h2>How dates work</h2>
+  <p>Our listing is chronological, aiming to capture the date a preprint was posted. For Zenodo, arXiv, PsyArXiv and SocArXiv, dates are supplied by the source. </p>
+
+
+  <p><strong>LingBuzz dates are mostly estimates.</strong> The only date LingBuzz shows is the one the author gives, which is (supposedly) when the paper was <i>written</i> and may be years before it was uploaded. LingFeed attempts to work out when each paper was probably uploaded, using the fact that LingBuzz numbers papers in upload order. A “~” beside a date marks a date we have estimated. LingFeed began to monitor LingBuzz on October 19, 2026. Papers that LingFeed saw appear on LingBuzz’s front page, and new versions it saw being posted, are dated by the moment LingFeed noticed them, with no “~”. We are confident that these are exact posting dates, parallel to the dates supplied by other repositories.</p>
+
+  <p>For a LingBuzz paper with a new version, the date is estimated in the month the author supplied for that version (which, again, is supposedly the date written), unless LingFeed saw it posted.</p>
+
+  <p><b>arXiv dates are submission dates, and arXiv releases papers in batches.</b> It announces new papers on Sunday through Thursday evenings (Eastern time). Papers submitted from Friday afternoon through Monday are all released on Monday evening, so on weekends and Mondays the newest arXiv papers can be several days old. Holidays can shift the schedule.</p>
+
+<P>  <strong>On PsyArXiv and SocArXiv, the date shown for an update is the time of the record’s latest change.</strong> This means that a metadata edit made after a new version can move it slightly. </p>
+
+<P>We display all dates in each visitor’s own time zone, so different viewers will in some cases see different dates for the same paper.</P>
+
+  <h2>What counts as “updated”</h2>
+
+  LingFeed has two views:
+   <p><b>New</b> lists each paper once, at the date it was first posted.</p>
+  <p><b>New and Updated</b> also includes papers that have had a new version posted. Such a paper is listed once, at the date of its newest version, and carries a “Recently updated” badge. Papers without a new version are listed at their first-posting date with a “new” badge.</p>
+
+
+  <p>Only a new version of a paper counts as updated for the purposes of the New and Updated view and the “Recently updated” badge: version 2 or later on arXiv, a later version on PsyArXiv, SocArXiv or Zenodo, or an added version on LingBuzz. Edits to a paper’s title, abstract or keywords, and files replaced without a new version, do not count.  </p>
+
+
+  <h2>Is there an RSS feed?</h2>
+
+<P>Why yes there is! You can access it <a href="rss.html">here</a>, or through the link at the top right of this page.</P>
+
+  <h2>Who is behind this? Why does this exist?</h2>
+
+  <p>
+LingFeed exists to help make linguistics preprints visible to linguists even when they are not posted on LingBuzz.  It is not a preprint server; you cannot host your paper here. For more about why LingFeed exists, see our <a href="why.html">Why LingFeed?</a> page.
+
+<P>LingFeed was built with Claude by Amy Rose Deal, a linguistics professor at UC Berkeley.</p>
+</div>
+</body>
+</html>

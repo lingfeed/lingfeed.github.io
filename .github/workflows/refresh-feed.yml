@@ -1,0 +1,26 @@
+name: Refresh RSS feed
+on:
+  schedule:
+    - cron: "52 * * * *"   # hourly, after the other jobs' usual times
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lingfeed-feed   # its own queue, so it never cancels or is cancelled by the data jobs
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # reads lingbuzz-recent.json, osf-recent.json and zenodo-recent.json (written by the other jobs)
+      - run: python3 build_feed.py
+      - name: Commit changes
+        run: |
+          git config user.name "lingfeed-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add feed.xml
+          git diff --cached --quiet && exit 0
+          git commit -m "Update feed.xml"
+          # another job may have pushed a moment ago: catch up and try again
+          for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

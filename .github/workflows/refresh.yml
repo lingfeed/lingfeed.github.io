@@ -1,0 +1,28 @@
+name: Refresh LingBuzz data
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes (GitHub may delay runs)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: lingfeed-lingbuzz   # each data source has its own queue, so a LingBuzz run never cancels an OSF or arXiv run
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      # refresh_lingbuzz.py runs build_lingbuzz.py, but while LingBuzz is down it fails (= emails) only when the
+      # outage starts and then every 12 hours while it lasts. It records the outage in lingbuzz-status.json.
+      - run: python3 refresh_lingbuzz.py
+      - name: Commit changes
+        if: always()   # also after a failed run, so the outage record is saved and the next run knows it was reported
+        run: |
+          git config user.name "lingfeed-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add lingbuzz.json lingbuzz-recent.json lingbuzz-archive.json lingbuzz-status.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update lingbuzz.json"
+          # another source's job may have pushed a moment ago: catch up and try again
+          for i in 1 2 3 4 5; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

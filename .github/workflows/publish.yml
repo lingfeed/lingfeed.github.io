@@ -1,0 +1,60 @@
+name: Publish site
+# Publishes LingFeed to GitHub Pages (Settings → Pages → Source: "GitHub Actions").
+#
+# Why it is triggered this way: when one of the data jobs saves new data, GitHub deliberately does not start
+# other workflows from that save (to prevent endless loops), so "publish on every push" would never publish new
+# data. Instead this runs whenever one of the five data jobs FINISHES, and also when you push changes yourself.
+# If the data job saved nothing new, publishing is skipped.
+on:
+  workflow_run:
+    workflows: ["Refresh LingBuzz data", "Refresh Zenodo data", "Refresh OSF data", "Refresh arXiv data", "Refresh RSS feed"]
+    types: [completed]
+  push:
+    branches: [main]
+  workflow_dispatch:          # "Run workflow" button on the Actions tab
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages                # one publish at a time; a newer one waits rather than cutting one off midway
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main           # always the newest data, whichever job finished
+      - name: Skip if the finished job saved nothing new
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            newest=$(git log -1 --format=%ct)                              # time of the newest saved change
+            started=$(date -d "${{ github.event.workflow_run.run_started_at }}" +%s)
+            if [ "$newest" -lt "$started" ]; then
+              echo "Nothing saved since that job started; not publishing."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Collect the site's files
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          shopt -s nullglob
+          mkdir _site
+          cp *.html *.json *.xml *.xsl *.ico *.png _site/
+          # working copies and records the page never reads
+          rm -f _site/lingbuzz.json _site/osf.json _site/lingbuzz-status.json _site/package.json _site/package-lock.json
+          ls -la _site
+      - uses: actions/configure-pages@v5
+        if: steps.check.outputs.skip != 'true'
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.check.outputs.skip != 'true'
+        with:
+          path: _site
+      - id: deployment
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/deploy-pages@v4

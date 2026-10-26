@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>LingFeed</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --muted:#6b6b66; --link:#1a4f8b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#181816; --fg:#e8e7e1; --muted:#9a9990; --link:#7db3f0; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 system-ui,sans-serif; }
+  p { max-width:600px; margin:48px auto; padding:0 16px; color:var(--muted); }
+  a { color:var(--link); }
+</style>
+</head>
+<body>
+<!-- Feed links (feed.xml) come through this page: it counts the click like a click on LingFeed itself,
+     then forwards the reader to the paper. Link format: go.html?id=<paper id>&to=<paper address>&t=<title>&a=<authors>
+     It only forwards to a paper's real address on its own repository, never anywhere else. -->
+<p id="msg">Opening the paper…</p>
+<noscript><p>This link needs JavaScript. You can find the paper on <a href="./">LingFeed</a>.</p></noscript>
+<script>
+(() => {
+  // Same address as COUNTER_URL in index.html. Leave empty to switch click counting off.
+  const COUNTER_URL = "https://lingfeed-counter.lingfeed.workers.dev";
+  // The only address each kind of paper may lead to (the same rules as the counter's, in counter/worker.js).
+  const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\\/]/g, "\\$&");
+  const SOURCES = {
+    z: { id: /^z\d{1,12}$/, url: id => /^https:\/\/zenodo\.org\/records\/\d{1,12}$/ },   // id: shared by all versions
+    l: { id: /^l\d{6}$/,    url: id => new RegExp(`^https://lingbuzz\\.net/lingbuzz/${id.slice(1)}$`) },
+    a: { id: /^a(\d{4}\.\d{4,5}|[a-z-]+(\.[A-Z]{2})?\/\d{7})$/, url: id => new RegExp(`^https://arxiv\\.org/abs/${escapeRe(id.slice(1))}$`) },
+    o: { id: /^o[a-z0-9]{5}$/, url: id => new RegExp(`^https://osf\\.io/(preprints/[a-z]+/)?${id.slice(1)}(_v\\d+)?/?$`) },
+  };
+  const p = new URLSearchParams(location.search);
+  const id = p.get("id") || "", to = p.get("to") || "", title = (p.get("t") || "").trim(), authors = (p.get("a") || "").trim();
+  const kind = SOURCES[id[0]];
+  if (!kind || !kind.id.test(id) || !kind.url(id).test(to)) {
+    document.getElementById("msg").innerHTML = 'This link doesn’t lead to a paper LingFeed knows. You can find new papers on <a href="./">LingFeed</a>.';
+    return;
+  }
+  // Report the click; sendBeacon is delivered even though the page is about to be left.
+  if (COUNTER_URL && title) {
+    const body = JSON.stringify({ id, title, authors, url: to });
+    try { navigator.sendBeacon(COUNTER_URL + "/click", new Blob([body], { type: "text/plain" })); } catch (e) {}
+  }
+  location.replace(to);   // replace: the Back button returns to the feed reader, not to this page
+})();
+</script>
+</body>
+</html>

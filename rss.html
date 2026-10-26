@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Follow new linguistics papers from LingFeed in your feed reader.">
+<meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181816" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="LingFeed" href="feed.xml">
+<title>LingFeed RSS feed</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --muted:#6b6b66; --line:#e2e1da; --link:#1a4f8b; --box:#e6eef8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#181816; --fg:#e8e7e1; --muted:#9a9990; --line:#33322e; --link:#7db3f0; --box:#1f2b3b; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 Georgia,"Times New Roman",serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  a { color:var(--link); text-decoration:none; } a:hover { text-decoration:underline; }
+  .back { font:14px system-ui,sans-serif; }
+  .topbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 18px; font:14px system-ui,sans-serif; }
+  .topbar nav { display:flex; gap:18px; } .topbar a { white-space:nowrap; }
+  h1 { font-size:28px; margin:12px 0 4px; }
+  h2 { font-size:19px; margin:30px 0 6px; padding-top:14px; border-top:1px solid var(--line); }
+  p, ul { margin:8px 0; } li { margin:4px 0; }
+  .lead { color:var(--muted); }
+  .addr { display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--box); border-radius:8px;
+    padding:12px 14px; margin:14px 0; font:14px system-ui,sans-serif; }
+  .addr code { font:14px ui-monospace,Menlo,monospace; word-break:break-all; flex:1 1 240px; }
+  .addr button { font:inherit; padding:6px 12px; border:1px solid var(--line); border-radius:6px;
+    background:var(--bg); color:var(--fg); cursor:pointer; }
+  .note { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← Back to LingFeed</a>
+    <nav aria-label="Site">
+      <a href="why.html">Why LingFeed?</a>
+      <a href="about.html">How it works</a>
+    </nav>
+  </div>
+  <h1>Follow LingFeed in a feed reader</h1>
+  <p class="lead">Get new linguistics papers delivered to your feed reader, instead of visiting the site.</p>
+
+  <p>Copy this address and add it to your feed reader:</p>
+  <div class="addr">
+    <code id="addr">feed.xml</code>
+    <button id="copy" type="button">Copy</button>
+  </div>
+
+  <h2>What the feed contains</h2>
+  <ul>
+    <li>Papers posted in the last two weeks on LingBuzz, Zenodo (Linguistics and Language Science Press), PsyArXiv and SocArXiv, newest first.</li>
+    <li>New versions of papers, marked “Updated:”.</li>
+    <li>arXiv is not included, as it posts about 200 papers a day in Computation and Language. Browse it on <a href="index.html?sources=arxiv">LingFeed</a> instead.</li>
+  </ul>
+  <p>The feed is refreshed about every hour. Clicks on its links count toward LingFeed’s Most clicked list, just like clicks on the site.</p>
+
+  <h2>What is a feed reader?</h2>
+  <p>A feed reader is an app or website that collects new posts from the sites you follow in one place. Popular ones include
+    <a href="https://netnewswire.com/" target="_blank" rel="noopener">NetNewsWire</a> (free, for Mac and iPhone),
+    <a href="https://feedly.com/" target="_blank" rel="noopener">Feedly</a> and
+    <a href="https://www.inoreader.com/" target="_blank" rel="noopener">Inoreader</a> (both on the web and phones).
+    In most of them you choose “Add feed” or “Subscribe” and paste the address above. Many can also find the feed if you just paste LingFeed’s own address.</p>
+  <p class="note">Some feed readers can also send new items to you by email.</p>
+</div>
+<script>
+(() => {
+  // The feed's full address, worked out from where this page is, so it is right on any site address.
+  const addr = new URL("feed.xml", location.href).href;
+  const el = document.getElementById("addr"), btn = document.getElementById("copy");
+  el.textContent = addr;
+  btn.onclick = async () => {
+    try { await navigator.clipboard.writeText(addr); btn.textContent = "Copied"; }
+    catch (e) {   // no clipboard access: select the address so it can be copied by hand
+      const r = document.createRange(); r.selectNodeContents(el);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = "Press Command-C";
+    }
+    setTimeout(() => { btn.textContent = "Copy"; }, 2500);
+  };
+})();
+</script>
+</body>
+</html>

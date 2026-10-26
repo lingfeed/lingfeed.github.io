@@ -1,0 +1,16 @@
+name = "lingfeed-counter"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Websites allowed to report clicks and read the ranking: your LingFeed address, plus localhost for testing.
+[vars]
+ALLOWED_ORIGINS = "https://lingfeed.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lingfeed-counter"
+database_id = "ca2be889-2410-47da-9ac5-b08ee12d307f"
+
+# Once a day: delete the short-lived anti-abuse data and counts older than the ranking window.
+[triggers]
+crons = ["17 3 * * *"]

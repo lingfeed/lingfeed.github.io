@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A single chronological feed of new linguistics papers and preprints from LingBuzz, Zenodo, PsyArXiv, SocArXiv and arXiv.">
+<meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181816" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="LingFeed" href="feed.xml">
+<!-- Social preview: these must be the full live address (https://lingfeed.github.io), not relative ones -->
+<link rel="canonical" href="https://lingfeed.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LingFeed">
+<meta property="og:title" content="LingFeed">
+<meta property="og:description" content="A single chronological feed of new linguistics papers and preprints from LingBuzz, Zenodo, PsyArXiv, SocArXiv and arXiv.">
+<meta property="og:url" content="https://lingfeed.github.io/">
+<meta property="og:image" content="https://lingfeed.github.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="LingFeed: new linguistics papers and preprints, in one feed">
+<meta name="twitter:card" content="summary_large_image">
+<title>LingFeed</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --muted:#6b6b66; --line:#e2e1da; --link:#1a4f8b; --hover:#f1f0ea;
+    --chip-bg:#e6eef8; --new-bg:#e3f3e6; --new-fg:#1d6b2e; --chg-bg:#fdf1d6; --chg-fg:#8a5a00;
+    --z-bg:#e2ecf8; --z-fg:#1a4f8b; --l-bg:#f3e4f1; --l-fg:#7a2b6e; --a-bg:#fbe5e0; --a-fg:#a33a20; --o-bg:#dff1ee; --o-fg:#1b6a5e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#181816; --fg:#e8e7e1; --muted:#9a9990; --line:#33322e; --link:#7db3f0; --hover:#222220;
+      --chip-bg:#1f2b3b; --new-bg:#1d3a24; --new-fg:#8fd9a0; --chg-bg:#3d3216; --chg-fg:#f0c566;
+      --z-bg:#1c2b40; --z-fg:#8fbdf3; --l-bg:#3a2236; --l-fg:#e3a6d8; --a-bg:#442620; --a-fg:#f2a592; --o-bg:#1b3a35; --o-fg:#8fd9c9; } }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }   /* "hidden" must win over styles like .controls { display:flex } */
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 Georgia,"Times New Roman",serif; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; font-size:14px; }
+  .stale { background:var(--chg-bg); color:var(--chg-fg); padding:6px 10px; border-radius:6px; margin:-8px 0 16px; font:13px system-ui,sans-serif; }
+  a { color:var(--link); text-decoration:none; } a:hover { text-decoration:underline; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px; font:14px system-ui,sans-serif; }
+  .controls input,.controls select,.controls button { font:inherit; padding:6px 10px; border:1px solid var(--line);
+    border-radius:6px; background:var(--bg); color:var(--fg); }
+  .controls input[type=search] { flex:1 1 190px; min-width:150px; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .seg button { border:0; border-radius:0; cursor:pointer; } .seg button.on { background:var(--link); color:var(--bg); }
+  button.go { cursor:pointer; }
+  .topnav { display:flex; justify-content:flex-end; gap:18px; margin-bottom:8px; font:14px system-ui,sans-serif; }
+  .topnav a { white-space:nowrap; }
+  .checks.off { opacity:.4; pointer-events:none; }
+  .checks { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--line);
+    border-radius:16px; cursor:pointer; user-select:none; font:13px system-ui,sans-serif; }
+  .chip.on { background:var(--chip-bg); border-color:var(--link); }
+  .chip input { margin:0; cursor:pointer; }
+  .tablewrap { overflow-x:auto; } table { width:100%; border-collapse:collapse; }
+  td { padding:8px 10px; border-top:1px solid var(--line); vertical-align:top; }
+  tr.item:hover { background:var(--hover); }
+  td.date { white-space:nowrap; color:var(--muted); font:13px system-ui,sans-serif; }
+  td.auth { width:22%; font-size:14px; } td.title a, td.title .t { font-size:16px; }
+  .meta,.kw { color:var(--muted); font:13px system-ui,sans-serif; margin-top:2px; } .kw { font-size:12px; }
+  .meta:empty { display:none; }
+  .badge { display:inline-block; padding:1px 8px; border-radius:10px; font:600 11px system-ui,sans-serif;
+    letter-spacing:.03em; text-transform:uppercase; margin-right:3px; }
+  .new { background:var(--new-bg); color:var(--new-fg); } .chg { background:var(--chg-bg); color:var(--chg-fg); }
+  .src-z { background:var(--z-bg); color:var(--z-fg); } .src-l { background:var(--l-bg); color:var(--l-fg); }
+  .src-a { background:var(--a-bg); color:var(--a-fg); }
+  .src-o { background:var(--o-bg); color:var(--o-fg); }
+  td.pdf { white-space:nowrap; font:13px system-ui,sans-serif; }
+  a.also:hover { text-decoration:none; } a.also:hover .badge { outline:1px solid currentColor; }
+  details.abs summary { cursor:pointer; color:var(--muted); font:12px system-ui,sans-serif; margin-top:4px; }
+  details.abs div { margin-top:6px; font-size:14px; max-width:70ch; }
+  .status { padding:16px 0; color:var(--muted); font-family:system-ui,sans-serif; } .err { color:#b3261e; }
+  .more { text-align:center; margin-top:18px; }
+  /* Phones: each paper becomes a small card (title first, then authors, then badges, date and pdf link)
+     instead of a table row, so the title gets the full width. */
+  @media (max-width:700px) {
+    .tablewrap { overflow-x:visible; }
+    table, tbody { display:block; width:100%; }
+    tr.item { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:10px; row-gap:3px;
+      padding:12px 0; border-top:1px solid var(--line); }
+    tr.item td { display:block; width:auto; padding:0; border-top:0; }
+    tr.item td.title { order:1; flex:0 0 100%; }
+    tr.item td.auth  { order:2; flex:0 0 100%; }
+    tr.item td.tags  { order:3; }
+    tr.item td.date  { order:4; }
+    tr.item td.pdf   { order:5; }
+    #type, .rtype { display:none; }      /* no resource-type menu, and no "Preprint" label on cards, on phones */
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav" aria-label="Site">
+    <a href="why.html">Why LingFeed?</a>
+    <a href="about.html">How it works</a>
+    <a href="rss.html" title="Follow LingFeed in a feed reader">RSS feed</a>
+  </nav>
+  <h1>LingFeed</h1>
+  <p class="sub">New linguistics papers and preprints from <a href="https://lingbuzz.net/" target="_blank" rel="noopener">LingBuzz</a>, <a href="https://zenodo.org/communities/linguistics" target="_blank" rel="noopener">Zenodo (Linguistics)</a>, <a href="https://zenodo.org/communities/langscipress" target="_blank" rel="noopener">Zenodo (Language Science Press)</a>, <a href="https://osf.io/preprints/psyarxiv/discover" target="_blank" rel="noopener">PsyArXiv (Linguistics)</a>, <a href="https://osf.io/preprints/socarxiv/discover" target="_blank" rel="noopener">SocArXiv (Linguistics)</a>, and <a href="https://arxiv.org/list/cs.CL/recent" target="_blank" rel="noopener">arXiv (Computation and Language)</a>, in one stream. <span id="info"></span></p>
+  <p class="stale" id="stale" role="status" hidden></p>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Sort">
+      <button id="s-new" type="button">New</button>
+      <button id="s-upd" class="on" type="button">New and Updated</button>
+      <button id="s-top" type="button" hidden>Most clicked</button>
+    </div>
+    <div class="checks" id="sources" role="group" aria-label="Sources"></div>
+    <select id="type" aria-label="Resource type">
+      <option value="">All types</option>
+      <option value="subtype=preprint">Preprints</option>
+      <option value="subtype=article">Journal articles</option>
+      <option value="subtype=conferencepaper">Conference papers</option>
+      <option value="subtype=thesis">Theses</option>
+      <option value="subtype=book">Books</option>
+      <option value="subtype=section">Book chapters</option>
+      <option value="type=presentation">Presentations</option>
+      <option value="type=dataset">Datasets</option>
+    </select>
+    <input id="q" type="search" placeholder="Search title, keywords, abstract…" title="Partial words match. * and ? are wildcards, &quot;tone sandhi&quot; = phrase, AND / OR / NOT / -word, title:tone. See How it works.">
+    <input id="author" type="search" placeholder="Search author…" aria-label="Author" title="Every word must match part of one author’s name, in any order. * and ? are wildcards.">
+    <button class="go" id="go" type="button">Search</button>
+  </div>
+
+  <div class="tablewrap"><table><tbody id="rows"></tbody></table></div>
+  <div class="status" id="status" role="status" aria-live="polite">Loading…</div>
+  <noscript><p class="status">LingFeed needs JavaScript to show its listings. Please turn JavaScript on in your browser, or read <a href="about.html">how LingFeed works</a>.</p>
+    <style>#status { display:none; }</style></noscript>
+  <div class="more"><button class="go controls" id="more" type="button" hidden>Load more</button></div>
+</div>
+
+<script>
+(() => {
+  // To add another Zenodo community, add a line here; it appears in the Source menu automatically.
+  const COMMUNITIES = [
+    { id:"linguistics",  badge:"Linguistics",  label:"Zenodo: Linguistics" },
+    { id:"langscipress", badge:"LangSci Press", label:"Zenodo: Language Science Press" }
+  ];
+  // Address of the click-counting service (see counter/README.md). Leave empty to switch click counting off.
+  const COUNTER_URL = "https://lingfeed-counter.lingfeed.workers.dev";
+  // Clicks are counted from launch, but the "Most clicked" list is only shown from this moment
+  // (midnight at the start of 1 November, US Pacific time). Before then the view shows CLICKS_TEASER instead.
+  const CLICKS_DEBUT = new Date("2026-11-01T00:00:00-07:00");
+  const CLICKS_TEASER = "Clicks on LingFeed are being counted. The most clicked list debuts on Nov 1!";
+  const beforeDebut = () => Date.now() < CLICKS_DEBUT.getTime();
+  const TOP_N = 10;   // how many papers the Most clicked list shows
+  const PAGE_SIZE = 25;
+  const API = "https://zenodo.org/api/records";
+  // File-based sources: JSON written by build_lingbuzz.py / build_arxiv.py, served next to this page.
+  const JSON_SOURCES = [
+    // "recent" is fetched as soon as a source is ticked; "archive" (older papers) only when someone searches or asks for more.
+    { id:"lingbuzz", short:"LingBuzz", label:"LingBuzz",                      files:{recent:"lingbuzz-recent.json", archive:"lingbuzz-archive.json"}, norm:r => normL(r) },
+    { id:"psyarxiv", short:"PsyArXiv", label:"PsyArXiv: Linguistics",         files:{recent:"osf-recent.json", archive:"osf-archive.json"}, where:r => r.provider==="PsyArXiv", norm:r => normO(r) },
+    { id:"socarxiv", short:"SocArXiv", label:"SocArXiv: Linguistics",         files:{recent:"osf-recent.json", archive:"osf-archive.json"}, where:r => r.provider==="SocArXiv", norm:r => normO(r) },
+    { id:"arxiv",    short:"arXiv",    label:"arXiv: Computation & Language", files:{recent:"arxiv.json"}, on:false, staleDays:4, norm:r => normA(r) }
+  ];
+  // A notice appears when a ticked source's file hasn't changed for this many days. LingBuzz and OSF files are
+  // rewritten at least daily while their scripts run (the 60-day "recent" boundary moves), so 2 days means a problem.
+  // arXiv's file changes only when arXiv announces papers (not Friday or Saturday), so it gets 4 days.
+  const STALE_DAYS = 2;
+
+  const S = { top:[], shown:[], rows:null, pending:0, sort:"mostrecent", q:"", author:"", typeParam:"", loading:false, enabled:new Set(),
+              zc:{}, js:{}, err:"" };
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  // Abstracts from Zenodo are HTML: read them as plain text in a separate, inert document, which never loads
+  // images or runs anything (setting innerHTML on an element of this page could).
+  const strip = h => {
+    if (!h) return "";
+    const doc = new DOMParser().parseFromString(h, "text/html");
+    doc.querySelectorAll("script, style, noscript, template").forEach(e => e.remove());   // code, not text
+    return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+  };
+  // Only ordinary web addresses are used as links, whatever a source sends.
+  const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
+  const fmt = iso => iso ? new Date(iso).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}) : "";
+  const DAY = 864e5;
+  const fold = s => String(s||"").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");  // "Müller" matches "muller"
+
+  // Zenodo query: free text AND author. Author words must all occur in one creator name, in any
+  // order ("Last, First" or "First Last"). Both the current and the legacy creator field names are
+  // listed; Elasticsearch ignores a field name that doesn't exist.
+  function zenodoQuery(ctx) {
+    const parts = [];
+    if (ctx.q) { const e = compiled(ctx.q).es(zMode); if (e) parts.push(e); }
+    const toks = ctx.author.split(/[^\p{L}\p{N}\p{M}*?~]+/u).filter(Boolean)
+      .map(t => /[*?~]/.test(t) ? t.toLowerCase() : partial(t.toLowerCase(), zMode));
+    if (toks.length) {
+      const inner = toks.join(" AND ");
+      parts.push(`(metadata.creators.person_or_org.name:(${inner}) OR creators.name:(${inner}))`);
+    }
+    return parts.join(" AND ");
+  }
+
+  // ---- source checkboxes ---------------------------------------------------
+  // Each source has an "on" flag for its default state (arXiv is off by default).
+  const SOURCE_DEFS = [
+    ...COMMUNITIES.map(c => ({ id:"z:"+c.id, label:c.label, on:true })),
+    ...JSON_SOURCES.map(j => ({ id:j.id, label:j.label, on:j.on !== false }))
+  ];
+  S.enabled = new Set(SOURCE_DEFS.filter(d => d.on).map(d => d.id));
+  $("sources").innerHTML = SOURCE_DEFS.map(d =>
+    `<label class="chip${d.on ? " on" : ""}"><input type="checkbox" value="${esc(d.id)}"${d.on ? " checked" : ""}> ${esc(d.label)}</label>`).join("");
+
+  const activeComms = () => COMMUNITIES.filter(c => S.enabled.has("z:"+c.id));
+  const activeJson  = () => JSON_SOURCES.filter(j => S.enabled.has(j.id));
+  // ---- Zenodo result sets ----------------------------------------------------
+  // One set of Zenodo results for each combination of view (latest versions, or all versions for "New"), search and
+  // type menu, kept while the page is open, so going back to a view already seen is instant. S.zc is the current set:
+  // per community the records loaded so far, the next page to ask for, whether all are loaded, and Zenodo's total.
+  // `floor`: when the records came from zenodo-recent.json, the date back to which they are complete.
+  const zSets = new Map();
+  function selectZ() {
+    const ctx = { all:S.sort === "newest", q:S.q, author:S.author, type:S.typeParam };
+    const k = JSON.stringify(ctx);
+    if (!zSets.has(k)) {
+      const set = { ctx, fileTried:false };
+      for (const c of COMMUNITIES) set[c.id] = { items:[], ids:new Set(), page:1, done:false, total:null, floor:null };
+      zSets.set(k, set);
+    }
+    S.zc = zSets.get(k);
+  }
+  selectZ();
+  // How far back a community's loaded records are complete; communities with nothing loaded yet don't count.
+  const zLoaded = st => st.items.length || st.floor != null;
+  const zFloor = st => st.floor != null ? st.floor : key(st.items[st.items.length - 1]);
+
+  // ---- normalizers ---------------------------------------------------------
+  function normZ(h, c) {
+    const m = h.metadata || {};
+    // Zenodo posts a new version as a new record; index 0 (legacy API) or 1 (current API) is the first version
+    const vi = m.relations?.version?.[0];
+    const verIdx = vi ? vi.index : (h.versions?.index != null ? h.versions.index - 1 : 0);
+    let files = [];
+    if (Array.isArray(h.files)) files = h.files.map(f => ({name:f.key||f.filename, url:f.links?.self||f.links?.download}));
+    else if (h.files?.entries) files = Object.values(h.files.entries).map(f => ({name:f.key,
+      url:f.links?.content || `https://zenodo.org/records/${h.id}/files/${encodeURIComponent(f.key)}`}));
+    const pdf = files.find(f => /\.pdf$/i.test(f.name||""));
+    const kw = m.keywords || (m.subjects||[]).map(s => s.subject).filter(Boolean) || [];
+    // Clicks are counted under the number Zenodo shares across all versions of a paper (conceptrecid; parent.id
+    // in Zenodo's newer format), so one paper's clicks are not split between its versions or between the two views.
+    const concept = h.conceptrecid || h.parent?.id || h.id;
+    return { src:"zenodo", id:"z"+h.id, cid:"z"+concept, vidx:verIdx, comms:[c.id], title:m.title||"(untitled)",
+      creators:(m.creators||[]).map(x => x.name||x.person_or_org?.name||"").filter(Boolean),
+      type:m.resource_type?.title?.en||m.resource_type?.title||"", created:h.created, updated:h.created,
+      changed:verIdx >= 1,   // "updated" for Zenodo = when the new version was posted
+      url:h.links?.self_html||h.links?.html||`https://zenodo.org/records/${h.id}`, pdf:pdf&&pdf.url,
+      doi:h.doi||m.doi, desc:strip(m.description), keywords:Array.isArray(kw)?kw:[], journal:m.journal?.title||"" };
+  }
+  function normL(r) {
+    return { src:"lingbuzz", id:"l"+r.id, title:r.title, creators:r.authors||[], type:"Preprint",
+      created:r.created, updated:r.updated, changed:r.revised !== undefined ? !!r.revised : r.status==="changed",
+      url:r.url||("https://lingbuzz.net/lingbuzz/"+r.id), pdf:r.pdf||("https://lingbuzz.net/lingbuzz/"+r.id+"/current.pdf"),
+      doi:"", desc:"", keywords:r.keywords||[], journal:"",
+      cs:r.created_src, us:r.updated_src };
+  }
+
+  function normA(r) {
+    return { src:"arxiv", id:"a"+r.id, title:r.title, creators:r.authors||[],
+      type:"Preprint" + (r.primary ? " · "+r.primary : ""), created:r.published, updated:r.updated,
+      changed:(r.version||1) > 1, url:r.url, pdf:r.pdf, doi:r.doi||"", desc:r.summary||"",
+      keywords:r.categories||[], journal:r.journal_ref||"" };
+  }
+
+  function normO(r) {
+    return { src:"osf", id:"o"+r.id, title:r.title, creators:r.authors||[],
+      type:"Preprint · "+(r.provider||"OSF"), created:r.published, updated:r.updated,
+      changed:(r.version||1) > 1, url:r.url, pdf:r.pdf, doi:r.doi||"", desc:r.summary||"",
+      keywords:r.keywords||[], journal:"", provider:r.provider||"OSF" };
+  }
+
+  // ---- search: Zenodo-style query language, evaluated here for the file-based sources ----
+  // Plain words match inside longer words ("phon" finds "phonology"); * and ? are wildcards; "quotes" match whole words / a phrase; AND / OR / NOT, brackets and
+  // -word work; title:, abstract:, keywords:, author: restrict a word to one field; word~ allows small spelling
+  // differences. Several words mean AND. The same parsed query is sent to Zenodo with explicit operators.
+  const tokenize = s => fold(s).match(/[\p{L}\p{N}]+/gu) || [];
+  const FIELD_ALIASES = { title:"title", "metadata.title":"title",
+    description:"description", abstract:"description", "metadata.description":"description",
+    keywords:"keywords", keyword:"keywords", subject:"keywords", "metadata.subjects.subject":"keywords",
+    author:"authors", authors:"authors", creator:"authors", creators:"authors",
+    "creators.name":"authors", "metadata.creators.person_or_org.name":"authors" };
+  const ES_FIELDS = { title:["metadata.title","title"], description:["metadata.description","description"],
+    keywords:["metadata.subjects.subject","keywords"], authors:["metadata.creators.person_or_org.name","creators.name"] };
+  const DEFAULT_FIELDS = ["title","keywords","description"];
+
+  function levenshtein(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    let prev = Array.from({length:b.length + 1}, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  // A function that says whether one (folded) word of a text matches one query word.
+  function termMatcher(raw) {
+    let t = raw.replace(/\^[\d.]*$/, ""), fuzzy = null;
+    const fm = t.match(/~(\d*)$/);
+    if (fm) { t = t.slice(0, fm.index); fuzzy = fm[1] === "" ? "auto" : Math.min(2, +fm[1]); }
+    t = fold(t);
+    if (/[*?]/.test(t)) {
+      const re = new RegExp("^" + t.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[\\p{L}\\p{N}]*").replace(/\?/g, "[\\p{L}\\p{N}]") + "$", "u");
+      return w => re.test(w);
+    }
+    if (fuzzy != null) {
+      const d = fuzzy === "auto" ? (t.length <= 2 ? 0 : t.length <= 5 ? 1 : 2) : fuzzy;
+      return w => levenshtein(w, t, d) <= d;
+    }
+    return w => w.includes(t);
+  }
+  const PIECE = /[^\p{L}\p{N}\p{M}*?]+/u;
+  function termNode(raw) {
+    const boostless = raw.replace(/\^[\d.]*$/, "");
+    const fm = boostless.match(/~\d*$/), suffix = fm ? fm[0] : "";
+    const pieces = (fm ? boostless.slice(0, fm.index) : boostless).split(PIECE).filter(Boolean);
+    if (!pieces.length) return { t:"true" };                                    // stray punctuation: ignore
+    if (pieces.length > 1) return { t:"phrase", words:pieces.flatMap(tokenize), es:'"' + pieces.join(" ").toLowerCase() + '"' };
+    return { t:"term", m:termMatcher(pieces[0] + suffix), es:pieces[0].toLowerCase() + suffix, plain:!/[*?]/.test(pieces[0]) && !suffix };
+  }
+  function phraseNode(tk) {
+    const body = tk.slice(1, tk.lastIndexOf('"'));
+    const pieces = body.split(PIECE).filter(Boolean);
+    return pieces.length ? { t:"phrase", words:tokenize(body), es:'"' + pieces.join(" ").toLowerCase() + '"' } : { t:"true" };
+  }
+  function parseQuery(src) {
+    const toks = src.match(/"(?:[^"\\]|\\.)*"(?:~\d+)?|[()]|[^\s()"]+/g) || [];
+    let i = 0;
+    const peek = () => toks[i], next = () => toks[i++];
+    const startsUnary = tk => tk !== undefined && tk !== ")" && tk !== "OR" && tk !== "AND";
+    function orExpr() { let n = andExpr(); while (peek() === "OR") { next(); n = { t:"or", a:n, b:andExpr() }; } return n; }
+    function andExpr() {
+      let n = unary();
+      while (peek() === "AND" || startsUnary(peek())) {
+        if (peek() === "AND") next();
+        if (!startsUnary(peek())) throw new Error("operator without a word after it");
+        n = { t:"and", a:n, b:unary() };
+      }
+      return n;
+    }
+    function unary() {
+      const tk = peek();
+      if (tk === "NOT" || tk === "-") { next(); return { t:"not", x:unary() }; }
+      if (tk === "+") { next(); return unary(); }
+      if (tk && tk.length > 1 && tk[0] === "-" && tk[1] !== "-") { toks[i] = tk.slice(1); return { t:"not", x:unary() }; }
+      if (tk && tk.length > 1 && tk[0] === "+") { toks[i] = tk.slice(1); return unary(); }
+      return primary();
+    }
+    function primary() {
+      const tk = next();
+      if (tk === undefined || tk === ")" || tk === "AND" || tk === "OR") throw new Error("unexpected " + tk);
+      if (tk === "(") { const n = orExpr(); if (next() !== ")") throw new Error("missing )"); return n; }
+      if (tk[0] === '"') return phraseNode(tk);
+      const fm = tk.match(/^([A-Za-z_.]+):(.*)$/);
+      if (fm) {
+        const child = fm[2] ? termNode(fm[2]) : (startsUnary(peek()) ? unary() : (() => { throw new Error("field without a word"); })());
+        return { t:"field", f:FIELD_ALIASES[fm[1].toLowerCase()] || null, raw:fm[1], x:child };
+      }
+      return termNode(tk);
+    }
+    const ast = orExpr();
+    if (i < toks.length) throw new Error("unexpected " + toks[i]);
+    return ast;
+  }
+  function textLists(r, f) {
+    const c = r._tk || (r._tk = { title:[tokenize(r.title)], description:[tokenize(r.desc)],
+      keywords:(r.keywords || []).map(tokenize), authors:(r.creators || []).map(tokenize) });
+    return c[f] || [];
+  }
+  const hasSeq = (tokens, words) => { for (let i = 0; i + words.length <= tokens.length; i++) if (words.every((w, k) => tokens[i + k] === w)) return true; return false; };
+  function evalNode(n, r, fields) {
+    switch (n.t) {
+      case "true":   return true;
+      case "term":   return fields.some(f => textLists(r, f).some(tk => tk.some(n.m)));
+      case "phrase": return fields.some(f => textLists(r, f).some(tk => hasSeq(tk, n.words)));
+      case "and":    return evalNode(n.a, r, fields) && evalNode(n.b, r, fields);
+      case "or":     return evalNode(n.a, r, fields) || evalNode(n.b, r, fields);
+      case "not":    return !evalNode(n.x, r, fields);
+      case "field":  return n.f ? evalNode(n.x, r, [n.f]) : false;      // an unknown field matches nothing
+    }
+    return false;
+  }
+  // Zenodo matches whole words, so a plain word is sent as *word* ("contains") to find it inside longer words.
+  // If Zenodo refuses that, the page drops to word* ("prefix") and then to the bare word ("exact").
+  let zMode = "contains";
+  const partial = (w, mode) => mode === "contains" ? `*${w}*` : mode === "prefix" ? `${w}*` : w;
+  // The same query as Zenodo's search engine understands it, with explicit AND between words.
+  function toEs(n, mode) {
+    switch (n.t) {
+      case "term": return n.plain ? partial(n.es, mode) : n.es;
+      case "phrase": return n.es;
+      case "and": case "or": { const a = toEs(n.a, mode), b = toEs(n.b, mode); return !a ? b : !b ? a : `(${a} ${n.t.toUpperCase()} ${b})`; }
+      case "not": { const x = toEs(n.x, mode); return x ? `(NOT ${x})` : ""; }
+      case "field": {
+        const x = toEs(n.x, mode); if (!x) return "";     // x is a single word, a quoted phrase, or already in brackets
+        return `(${(n.f ? ES_FIELDS[n.f] : [n.raw]).map(f => `${f}:${x}`).join(" OR ")})`;
+      }
+    }
+    return "";
+  }
+  let lastSrc = null, lastCompiled = null;
+  function compiled(src) {
+    if (src === lastSrc) return lastCompiled;
+    let c;
+    try { const ast = parseQuery(src); c = { ok:true, es:mode => toEs(ast, mode), test:r => evalNode(ast, r, DEFAULT_FIELDS) }; }
+    catch (e) {   // could not read the syntax: search for the words instead
+      const words = src.split(PIECE).filter(Boolean), ms = words.map(termMatcher);
+      c = { ok:false, es:mode => words.length ? `(${words.map(w => /[*?]/.test(w) ? w.toLowerCase() : partial(w.toLowerCase(), mode)).join(" AND ")})` : "",
+            test:r => ms.every(m => DEFAULT_FIELDS.some(f => textLists(r, f).some(tk => tk.some(m)))) };
+    }
+    lastSrc = src; lastCompiled = c;
+    return c;
+  }
+  // Author box: every word must match part of one author's name, in any order (wildcards and ~ work).
+  function authorTest(str) {
+    const ms = str.split(/[^\p{L}\p{N}\p{M}*?~]+/u).filter(Boolean).map(termMatcher);
+    return r => !ms.length || (r.creators || []).some(a => { const tk = tokenize(a); return ms.every(m => tk.some(m)); });
+  }
+
+  // ---- merge + render ------------------------------------------------------
+  // In "New and Updated" a paper is listed once: at its newest version's date if it has a new version,
+  // otherwise at its first posting. In "New" every paper is listed at its first posting.
+  const listedAtUpdate = r => S.sort==="mostrecent" && r.changed;
+  const listedDate = r => listedAtUpdate(r) ? r.updated : r.created;
+  // A row's date as a number, worked out once per paper and kept (sorting thousands of papers after a search
+  // would otherwise read every date string again on every redraw).
+  const stamp = (r, f) => r["_t" + f] ?? (r["_t" + f] = new Date(r[f] || 0).getTime());
+  const key = r => listedAtUpdate(r) ? stamp(r, "updated") : stamp(r, "created");
+  const zAllDone = act => act.every(c => S.zc[c.id].done);
+
+  function zenodoItems(act) {
+    const seen = new Map();   // a record can belong to several communities: show it once
+    for (const c of act) for (const r of S.zc[c.id].items) {
+      const prev = seen.get(r.id);
+      if (!prev) seen.set(r.id, r);
+      else for (const x of r.comms) if (!prev.comms.includes(x)) prev.comms.push(x);
+    }
+    return [...seen.values()];
+  }
+
+  const searching = () => !!(S.q || S.author);
+  const jsonItems = j => { const st = S.js[j.id]; return st ? st.recent.concat(st.archive) : []; };
+  const archiveMissing = j => { const st = S.js[j.id]; return !!(st && st.hasArchive && !st.archiveLoaded && !st.archiveFailed); };
+  // How far back the first screen reaches: the newest "recent" boundary among the ticked sources that have an archive.
+  const RECENT_MS = 60 * 864e5;
+  function recentHorizon() {
+    const ss = activeJson().map(j => S.js[j.id]).filter(st => st && st.since != null).map(st => st.since);
+    if (ss.length) return Math.max(...ss);
+    return activeJson().some(j => j.files.archive) ? Date.now() - RECENT_MS : null;   // until the files arrive
+  }
+
+  // Every row that can be listed correctly with what has been loaded so far, newest first.
+  function safeItems() {
+    const act = activeComms();
+    let zs = zenodoItems(act);
+    let ls = activeJson().flatMap(jsonItems);
+    // LingBuzz and arXiv items are all preprints; hide them when a non-preprint type is chosen
+    if (S.typeParam && S.typeParam!=="subtype=preprint") ls = [];
+    // Zenodo posts a new version as a separate record, whose date is the version's, not the paper's first
+    // posting; the first version is its own record, so in "New" later versions would be listed twice
+    if (S.sort==="newest") zs = zs.filter(r => !r.changed);
+    // papers with no known first-posting date can only be listed if they have a new version
+    ls = ls.filter(r => S.sort==="newest" ? r.created : (r.created || r.changed));
+    if (S.q) ls = ls.filter(compiled(S.q).test);
+    if (S.author) ls = ls.filter(authorTest(S.author));
+    // Show only items newer than the oldest item loaded from every community that has more pages, and newer
+    // than the "recent" boundary of every source whose archive is not loaded yet, so that rows are never missing
+    // from the middle of the list and "Load more" never has to insert rows above ones the reader has already seen.
+    const open = act.filter(c => !S.zc[c.id].done && zLoaded(S.zc[c.id]));
+    const zEdge = open.length ? Math.max(...open.map(c => zFloor(S.zc[c.id]))) : -Infinity;
+    const jEdge = Math.max(-Infinity, ...activeJson().filter(archiveMissing).map(j => S.js[j.id].since));
+    const edge = Math.max(zEdge, jEdge);
+    zs = zs.filter(r => key(r) >= edge);
+    ls = ls.filter(r => key(r) >= edge);
+    return mergeCrossPosts([...zs, ...ls]).sort((a,b) => key(b)-key(a));
+  }
+
+  // ---- cross-posted papers ---------------------------------------------------
+  // A paper posted on two sources (e.g. LingBuzz and Zenodo) is shown once, with both source badges. Two copies
+  // match when their titles are the same after ignoring capitals, accents and punctuation, and their author lists
+  // share a name. Very short titles ("Introduction") are never matched. The row's title link, [pdf] link and click
+  // count go to the copy that is not on LingBuzz (if there are several, the earliest posted); the other copies'
+  // badges link to them. The row is dated like a single paper: first posting anywhere in "New"; the newest version
+  // anywhere, if any copy has one, in "New and Updated". Only copies loaded so far can be matched, so a copy found by
+  // "Load more" or a search joins its row then.
+  const sourceOf = r => r.src === "osf" ? r.provider : r.src;      // PsyArXiv and SocArXiv count as different sources
+  function titleKey(r) {
+    if (r._tkey === undefined) { const t = tokenize(r.title).join(" "); r._tkey = t.length >= 20 && t.split(" ").length >= 3 ? t : null; }
+    return r._tkey;
+  }
+  const nameWords = r => r._nw || (r._nw = new Set((r.creators || []).flatMap(tokenize).filter(w => w.length >= 3)));
+  const shareAuthor = (a, b) => { const A = nameWords(a); for (const w of nameWords(b)) if (A.has(w)) return true; return false; };
+  const ms = s => s ? new Date(s).getTime() : NaN;
+  function mergeCrossPosts(items) {
+    const groups = new Map(), out = [];
+    for (const r of items) {
+      const k = titleKey(r);
+      if (!k) { out.push(r); continue; }
+      const list = groups.get(k) || (groups.set(k, []), groups.get(k));
+      const g = list.find(g => !g.some(x => sourceOf(x) === sourceOf(r)) && g.some(x => shareAuthor(x, r)));
+      if (g) g.push(r); else { const n = [r]; list.push(n); out.push(n); }
+    }
+    return out.map(x => !Array.isArray(x) ? x : x.length === 1 ? x[0] : combine(x));
+  }
+  function combine(copies) {
+    const byCreated = copies.filter(c => c.created).sort((a, b) => ms(a.created) - ms(b.created));
+    const others = copies.filter(c => c.src !== "lingbuzz");
+    const primary = others.slice().sort((a, b) => (ms(a.created) || Infinity) - (ms(b.created) || Infinity))[0] || copies[0];
+    const newest = copies.filter(c => c.changed && c.updated).sort((a, b) => ms(b.updated) - ms(a.updated))[0];
+    const first = byCreated[0] || primary;
+    return { ...primary, _tk:undefined, _tcreated:undefined, _tupdated:undefined, copies:[primary, ...copies.filter(c => c !== primary && c.src !== "lingbuzz"), ...copies.filter(c => c !== primary && c.src === "lingbuzz")],
+      created:first.created, cFrom:first,
+      changed:!!newest, updated:newest ? newest.updated : primary.updated, uFrom:newest || primary,
+      keywords:[...new Set(copies.flatMap(c => c.keywords || []))],
+      desc:primary.desc || copies.map(c => c.desc).find(Boolean) || "",
+      doi:primary.doi || copies.map(c => c.doi).find(Boolean) || "",
+      journal:primary.journal || copies.map(c => c.journal).find(Boolean) || "",
+      pdf:primary.pdf || others.map(c => c.pdf).find(Boolean) || null };
+  }
+  // How exact a row's date is: "exact" (given by the source), or for LingBuzz "observed" (seen arriving),
+  // "gap" (posted while LingFeed wasn't watching, placed between its neighbours) or "month" (estimated from the month).
+  function dateKind(r, atUpdate) {
+    const c = r.copies ? (atUpdate ? r.uFrom : r.cFrom) : r;
+    if (c.src !== "lingbuzz") return "exact";
+    const s = atUpdate ? c.us : c.cs;
+    return s === "observed" ? "observed" : s === "gap" ? "gap" : "month";
+  }
+  const DATE_NOTE = { exact:"", observed:"First seen on LingBuzz by LingFeed (accurate to within the update interval)",
+    gap:"Estimated: posted on LingBuzz while LingFeed wasn't watching; dated between its neighbouring papers",
+    month:"Estimated: LingBuzz publishes only the month" };
+  // How many of them to show. First screen: everything from the recent period. A search starts with 50.
+  // "Load more" adds 50 and loads whatever data those rows need.
+  function rowCap(all) {
+    if (S.rows != null) return S.rows;
+    if (!activeJson().length) return Infinity;                   // Zenodo only: Zenodo's own paging
+    if (searching()) return 50;
+    const h = recentHorizon();
+    return h == null ? 50 : all.filter(r => key(r) >= h).length;
+  }
+  const moreAvailable = (all, cap) => all.length > cap || activeJson().some(archiveMissing) || !zAllDone(activeComms());
+
+  function render() {
+    const act = activeComms();
+    const clicks = S.sort==="clicks";
+    const all = clicks ? clickItems() : safeItems();
+    const cap = clicks ? Infinity : rowCap(all);
+    const items = all.slice(0, cap);
+    S.shown = items;
+    $("rows").innerHTML = items.map((r, idx) => {
+      const when = listedDate(r);
+      const kind = r.clicks != null ? "exact" : dateKind(r, listedAtUpdate(r));
+      const approx = kind === "exact" || kind === "observed" ? "" : "~";
+      const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">Recently updated</span>' : '<span class="badge new">new</span>';
+      const srcBadge = c => {
+        const names = c.src==="zenodo" ? c.comms.map(id => COMMUNITIES.find(x => x.id===id)?.badge || id) : [];
+        return c.src==="zenodo"
+          ? `<span class="badge src-z" title="Zenodo community: ${esc(names.join(', '))}">Zenodo${COMMUNITIES.length>1 && names.length ? " · "+esc(names.join(" + ")) : ""}</span>`
+          : c.src==="arxiv" ? '<span class="badge src-a">arXiv</span>'
+          : c.src==="osf" ? '<span class="badge src-o">'+esc(c.provider)+'</span>' : '<span class="badge src-l">LingBuzz</span>';
+      };
+      // a cross-posted paper: its main source's badge, then each other copy's badge as a link to that copy
+      const srcB = !r.copies ? srcBadge(r) : srcBadge(r.copies[0]) + r.copies.slice(1).map(c =>
+        safeUrl(c.url) ? `<a class="also" href="${esc(c.url)}" target="_blank" rel="noopener" title="Also posted here">${srcBadge(c)}</a>` : srcBadge(c)).join("");
+      const kws = r.keywords.slice(0,6).map(esc).join(" · ");
+      const metaRest = [r.journal ? esc(r.journal) : "",
+        r.doi ? `<a href="https://doi.org/${esc(r.doi)}" target="_blank" rel="noopener" data-i="${idx}">${esc(r.doi)}</a>` : ""].filter(Boolean).join(" · ");
+      const metaHtml = (r.type ? `<span class="rtype">${esc(r.type)}${metaRest ? " · " : ""}</span>` : "") + metaRest;
+      return `<tr class="item">
+        <td class="date" title="${DATE_NOTE[kind]}">${r.clicks != null ? "#"+r.rank+" · "+r.clicks.toLocaleString()+" clicks" : approx+esc(fmt(when))}</td>
+        <td class="auth">${r.creators.length ? r.creators.map(esc).join("; ") : "—"}</td>
+        <td class="tags">${srcB}${badge}</td>
+        <td class="pdf">${safeUrl(r.pdf) ? `<a href="${esc(r.pdf)}" target="_blank" rel="noopener" data-i="${idx}">[pdf]</a>` : ""}</td>
+        <td class="title">${safeUrl(r.url) ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" data-i="${idx}">${esc(r.title)}</a>` : `<span class="t">${esc(r.title)}</span>`}
+          <div class="meta">${metaHtml}</div>
+          ${kws?`<div class="kw">${kws}</div>`:""}
+          ${r.desc?`<details class="abs"><summary>abstract</summary><div>${esc(r.desc)}</div></details>`:""}
+        </td></tr>`;
+    }).join("");
+    const busy = S.loading || S.pending > 0;
+    $("more").hidden = clicks || busy || !moreAvailable(all, cap);
+    $("status").className = S.err ? "status err" : "status";
+    $("status").textContent = S.err || (busy ? (items.length ? (searching() ? "Searching older papers…" : "Loading…") : "Loading…")
+      : clicks && beforeDebut() ? CLICKS_TEASER
+      : !S.enabled.size ? "Select at least one source." : items.length ? "" : clicks ? "No papers have enough clicks yet." : "No records found.");
+  }
+
+  // ---- click ranking ---------------------------------------------------------
+  const FAMILY = { z:"zenodo", l:"lingbuzz", a:"arxiv", o:"osf" };
+  function clickItems() {
+    const qt = S.q ? compiled(S.q).test : null, at = S.author ? authorTest(S.author) : null;
+    return S.top.map((p, i) => ({ src:FAMILY[p.src] || "lingbuzz", id:p.id, comms:[], title:p.title,
+        creators:p.authors ? p.authors.split("; ") : [], url:p.url, pdf:null, doi:"", desc:"", keywords:[],
+        journal:"", type:"", provider:p.provider || "OSF", clicks:p.clicks, rank:i+1 }))
+      .filter(r => (!qt || qt(r)) && (!at || at(r)));
+  }
+
+  // The counter keeps the title and authors sent with a paper's first click, and it can't check them, so a made-up
+  // click could attach a fake title to a real paper. The list therefore shows each paper's title and authors as
+  // LingFeed itself knows them: from its own data files (loading a source's older papers only if a listed paper
+  // needs them) or, for Zenodo, from Zenodo itself. Only a paper found nowhere (an arXiv paper older than about a
+  // week) keeps the counter's copy. Checked titles are remembered while the page is open.
+  const checkedTitles = new Map();
+  function ownCopy(id) {
+    for (const st of Object.values(S.js)) for (const r of st.recent.concat(st.archive)) if (r.id === id) return r;
+    for (const set of zSets.values()) for (const c of COMMUNITIES) for (const r of set[c.id].items) if (r.cid === id) return r;
+    return null;
+  }
+  const KIND_OF_SOURCE = { lingbuzz:"l", psyarxiv:"o", socarxiv:"o", arxiv:"a" };
+  async function checkTitles(papers) {
+    const todo = () => papers.filter(p => !checkedTitles.has(p.id));
+    const findOwn = () => { for (const p of todo()) { const r = ownCopy(p.id);
+      if (r) checkedTitles.set(p.id, { title:r.title, authors:r.creators.slice(0, 6).join("; "), provider:r.provider }); } };
+    findOwn();
+    // load the files that could hold the rest: older LingBuzz/OSF papers, arXiv (only if one is listed)
+    const kinds = new Set(todo().map(p => p.src));
+    const wanted = JSON_SOURCES.filter(j => kinds.has(KIND_OF_SOURCE[j.id]));
+    if (wanted.length) { await Promise.all(wanted.map(j => j.files.archive ? ensureArchive(j) : ensureRecent(j))); findOwn(); }
+    // Zenodo: the site's file first (papers are listed under the number shared by all versions), else ask Zenodo
+    const zs = todo().filter(p => p.src === "z");
+    if (zs.length) {
+      const d = await zFile();
+      for (const c of COMMUNITIES) for (const h of d?.communities?.[c.id]?.records || []) {
+        const r = normZ(h, c), p = zs.find(p => p.id === r.cid);
+        if (p && !checkedTitles.has(p.id)) checkedTitles.set(p.id, { title:r.title, authors:r.creators.slice(0, 6).join("; ") });
+      }
+      await Promise.all(todo().filter(p => p.src === "z").map(async p => {
+        const n = (p.url.match(/\/records\/(\d+)$/) || [])[1];
+        if (!n) return;
+        try {
+          const res = await fetch(`${API}/${n}`, { headers:{ Accept:"application/json" } });
+          if (!res.ok) return;
+          const r = normZ(await res.json(), COMMUNITIES[0]);
+          checkedTitles.set(p.id, { title:r.title, authors:r.creators.slice(0, 6).join("; ") });
+        } catch (e) {}                                        // Zenodo unreachable: keep the counter's copy for now
+      }));
+    }
+    return papers.map(p => ({ ...p, ...(checkedTitles.get(p.id) || {}) }));
+  }
+
+  async function loadClicks() {
+    if (beforeDebut()) { S.top = []; S.err = ""; info(); render(); return; }   // list not shown yet: just the notice
+    S.pending++; S.err = ""; S.top = [];
+    $("more").hidden = true; $("status").className = "status"; $("status").textContent = "Loading…";
+    try {
+      const res = await fetch(`${COUNTER_URL}/top?limit=${TOP_N}`);
+      if (!res.ok) throw new Error(res.status);
+      S.top = await checkTitles((await res.json()).papers || []);   // shown only once the titles are checked
+    } catch (e) { S.err = "Couldn't load the click ranking: " + e.message; }
+    S.pending--;
+    info(); render();
+  }
+
+  // ---- loading -------------------------------------------------------------
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const fileCache = {};   // one download per file, even when two sources share it (PsyArXiv and SocArXiv)
+  const getFile = f => fileCache[f] ||= fetch(f)
+    .then(res => { if (!res.ok) throw new Error(res.status); return res.json(); })
+    .catch(e => { delete fileCache[f]; throw e; });
+
+  // A source's small "recent" file: fetched as soon as the source is ticked.
+  function ensureRecent(j) {
+    const st = S.js[j.id] ||= { recent:[], archive:[], ok:null, generated:null, since:null, hasArchive:false };
+    if (st.recentP) return st.recentP;
+    S.pending++;
+    st.recentP = getFile(j.files.recent).then(data => {
+        st.recent = (data.records || []).filter(j.where || (() => true)).map(j.norm);
+        st.ok = true; st.generated = data.generated;
+        if (j.files.archive && data.since) { st.since = new Date(data.since).getTime(); st.hasArchive = true; }
+      }).catch(() => { st.ok = false; })
+      .finally(() => { S.pending--; info(); render(); });
+    return st.recentP;
+  }
+  // The large "archive" file of older papers: fetched only when someone searches or asks for more.
+  async function ensureArchive(j) {
+    await ensureRecent(j);
+    const st = S.js[j.id];
+    if (!st.hasArchive || st.archiveP) return st.archiveP;
+    S.pending++; render();
+    st.archiveP = getFile(j.files.archive).then(data => {
+        st.archive = (data.records || []).filter(j.where || (() => true)).map(j.norm);
+        st.archiveLoaded = true;
+      }).catch(() => { st.archiveFailed = true; })      // carry on with the recent papers only
+      .finally(() => { S.pending--; render(); });
+    return st.archiveP;
+  }
+  const ensureArchives = () => Promise.all(activeJson().map(ensureArchive));
+
+  // The next page of one community's results, for the result set `set` (whatever view the reader has moved on to).
+  async function fetchPage(c, set) {
+    const st = set[c.id], ctx = set.ctx;
+    const startMode = zMode;
+    let res, changed = false;
+    for (;;) {
+      const used = zMode, zq = zenodoQuery(ctx);
+      const p = new URLSearchParams({communities:c.id, sort:"newest", size:PAGE_SIZE, page:st.page});
+      if (zq) p.set("q", zq);
+      // Zenodo normally returns only each paper's latest version. "New" lists papers at their first posting,
+      // so there it asks for every version and safeItems() keeps only the first ones.
+      if (ctx.all) p.set("all_versions", "true");
+      res = await fetch(`${API}?${p}` + (ctx.type ? "&"+ctx.type : ""), {headers:{Accept:"application/json"}});
+      if (res.status !== 400 || used === "exact") break;
+      // Zenodo may refuse wildcards at the start of a word: fall back to word-start matching, then exact words.
+      // Both communities are asked at once, so only step down if no other request has already done so.
+      if (zMode === used) {
+        zMode = used === "contains" ? "prefix" : "exact";
+        changed = true;
+      }
+      if (zenodoQuery(ctx) === zq) break;                  // the mode makes no difference to this query
+    }
+    if (!res.ok && changed) zMode = startMode;             // the failure was something else; keep the best mode
+    if (res.status===429) throw new Error("Zenodo rate limit hit; wait a minute and retry.");
+    if (!res.ok) throw new Error(`Zenodo API returned ${res.status} for ${c.badge}`);
+    const data = await res.json();
+    const page = data.hits?.hits || [];
+    // after records from the file, the first live page can overlap them: keep each record once
+    const hits = page.map(h => normZ(h, c)).filter(r => !st.ids.has(r.id));
+    for (const r of hits) st.ids.add(r.id);
+    st.items.push(...hits);
+    st.floor = null;                                       // complete down to the last record loaded
+    st.total = data.hits?.total ?? st.total;
+    st.page++;
+    st.done = page.length < PAGE_SIZE || st.items.length >= st.total;
+  }
+
+  // ---- Zenodo's recent records from the site's own file ----------------------
+  // zenodo-recent.json (written every 15 minutes by build_zenodo.py) holds the last 60 days of both communities,
+  // all versions. With no search and no type chosen, the first screen is filled from it instead of a dozen rounds
+  // of requests to Zenodo; "Load more" then continues live from where the file ends. If the file is missing or
+  // more than two days old, everything is asked live as before.
+  const ZFILE = "zenodo-recent.json", ZFILE_MAX_AGE = 2 * DAY;
+  let zFileP = null;
+  const zFile = () => zFileP ||= fetch(ZFILE).then(r => r.ok ? r.json() : null)
+    .then(d => d && Date.now() - new Date(d.generated).getTime() < ZFILE_MAX_AGE ? d : null).catch(() => null);
+  function latestOnly(recs) {                              // each paper's newest version, as Zenodo's default search gives
+    const best = new Map();
+    for (const r of recs) {
+      const b = best.get(r.cid);
+      if (!b || r.vidx > b.vidx || (r.vidx === b.vidx && ms(r.created) > ms(b.created))) best.set(r.cid, r);
+    }
+    return [...best.values()];
+  }
+  async function fillFromFile(set) {
+    if (set.fileTried || set.ctx.q || set.ctx.author || set.ctx.type) return;
+    set.fileTried = true;
+    const d = await zFile();
+    if (!d) return;
+    for (const c of COMMUNITIES) {
+      const st = set[c.id], f = d.communities?.[c.id];
+      if (!f || st.items.length) continue;
+      let recs = (f.records || []).map(h => normZ(h, c));
+      if (!set.ctx.all) recs = latestOnly(recs);
+      recs.sort((a, b) => ms(b.created) - ms(a.created));
+      st.items = recs; st.ids = new Set(recs.map(r => r.id));
+      st.total = set.ctx.all ? f.total_all : f.total_latest;
+      st.floor = new Date(f.complete_since || d.since).getTime();
+      st.page = Math.floor(recs.length / PAGE_SIZE) + 1;   // Zenodo's own list starts with these same records
+      st.done = st.total != null && recs.length >= st.total;
+    }
+  }
+
+  // mode: "init" (only communities with nothing loaded), default: the next page of every community not finished
+  async function loadZ(mode) {
+    if (S.loading) return;
+    S.loading = true;
+    const set = S.zc;
+    try {
+      await fillFromFile(set);
+      const todo = activeComms().filter(c => { const st = set[c.id]; return !st.done && (mode!=="init" || !zLoaded(st)); });
+      if (!todo.length) return;
+      S.err = "";
+      $("more").hidden = true; $("status").className = "status"; $("status").textContent = "Loading…";
+      const res = await Promise.allSettled(todo.map(c => fetchPage(c, set)));
+      const bad = res.find(r => r.status==="rejected");
+      if (bad && set === S.zc) S.err = "Couldn't load Zenodo: " + bad.reason.message;
+    } finally {
+      S.loading = false;
+      info(); render();
+    }
+  }
+
+  // Warn when a ticked source's data has stopped updating (a scraper failing, a source down, GitHub pausing the jobs).
+  function staleNotice() {
+    const old = S.sort==="clicks" ? [] : activeJson().filter(j => { const st = S.js[j.id];
+      return st && st.ok && st.generated && Date.now() - new Date(st.generated).getTime() > (j.staleDays || STALE_DAYS) * DAY; });
+    const el = $("stale");
+    el.hidden = !old.length;
+    el.textContent = old.map(j => `The ${j.short} listings have not updated since ${fmt(S.js[j.id].generated)}, so its newest papers may be missing.`).join(" ");
+  }
+
+  function info() {
+    staleNotice();
+    if (S.sort==="clicks") { $("info").textContent = beforeDebut() ? "" : `The ${TOP_N} papers most clicked by LingFeed visitors over the last six months, all sources together.`; return; }
+    const parts = [];
+    const z = activeComms().filter(c => S.zc[c.id].total!=null)
+      .map(c => `${c.badge} ${S.zc[c.id].total.toLocaleString()}`);
+    if (z.length) parts.push("Zenodo records: " + z.join(" · "));
+    for (const j of activeJson()) {
+      const st = S.js[j.id];
+      if (!st || st.ok === null) continue;
+      parts.push(st.ok ? `${j.short} data last changed ${fmt(st.generated)}` : `${j.short} data unavailable`);
+    }
+    $("info").textContent = parts.join(" · ");
+  }
+
+  async function loadZWait(mode) { while (S.loading) await sleep(100); return loadZ(mode); }
+  // The first screen should cover the whole recent period: keep loading Zenodo pages until they reach back that far.
+  async function fillToHorizon() {
+    for (let guard = 0; guard < 12 && S.sort !== "clicks" && !searching(); guard++) {
+      const h = recentHorizon(); if (h == null) return;
+      const open = activeComms().filter(c => !S.zc[c.id].done && zLoaded(S.zc[c.id]));
+      if (!open.length || Math.max(...open.map(c => zFloor(S.zc[c.id]))) <= h) return;
+      await loadZWait();
+    }
+  }
+  async function loadMore() {
+    if (S.sort === "clicks" || S.busyMore) return;
+    S.busyMore = true; S.pending++; render();
+    try {
+      if (!activeJson().length) { await loadZWait(); }
+      else {
+        const all = safeItems();
+        S.rows = Math.min(rowCap(all), all.length) + 50;
+        await ensureArchives();                                   // older papers of the file-based sources
+        for (let guard = 0; guard < 20 && !zAllDone(activeComms()) && safeItems().length < S.rows; guard++) await loadZWait();
+      }
+    } finally { S.busyMore = false; S.pending--; render(); }
+  }
+
+  function reload() {
+    updateUrl();
+    S.rows = null; S.err = ""; $("rows").innerHTML = "";
+    if (S.sort==="clicks") { loadClicks(); return; }
+    if (searching()) ensureArchives();                             // a search needs the older papers too
+    selectZ();                                                     // this view's Zenodo results, if already loaded
+    render();
+    loadZWait("init").then(fillToHorizon);                         // waits if another view's request is under way
+  }
+
+  // ---- shareable addresses -------------------------------------------------
+  // The view, both searches, the type menu and the ticked sources are kept in the page's address, e.g.
+  // ?view=new&author=Deal&sources=lingbuzz,arxiv, so a view can be bookmarked or sent to someone.
+  // Settings left at their defaults are not written, so the plain address still means the default view.
+  const VIEWS = { newest:"new", mostrecent:"", clicks:"top" };
+  const srcName = id => id.replace(/^z:/, "zenodo-");             // "z:linguistics" appears as "zenodo-linguistics"
+  const DEFAULT_SOURCES = SOURCE_DEFS.filter(d => d.on).map(d => d.id).join(",");
+  function updateUrl() {
+    const p = new URLSearchParams();
+    if (VIEWS[S.sort]) p.set("view", VIEWS[S.sort]);
+    if (S.q) p.set("q", S.q);
+    if (S.author) p.set("author", S.author);
+    if (S.typeParam) p.set("type", S.typeParam.split("=")[1]);
+    const on = SOURCE_DEFS.filter(d => S.enabled.has(d.id)).map(d => d.id);
+    if (on.join(",") !== DEFAULT_SOURCES) p.set("sources", on.length ? on.map(srcName).join(",") : "none");
+    const qs = p.toString().replace(/%2C/g, ",");
+    try { history.replaceState(null, "", qs ? "?" + qs : location.pathname); } catch (e) {}   // some previews forbid this
+  }
+  function readUrl() {
+    let p;
+    try { p = new URLSearchParams(location.search); } catch (e) { return; }
+    const view = Object.keys(VIEWS).find(k => VIEWS[k] && VIEWS[k] === p.get("view"));
+    if (view) S.sort = view;
+    S.q = (p.get("q") || "").trim(); S.author = (p.get("author") || "").trim();
+    $("q").value = S.q; $("author").value = S.author;
+    const opt = [...$("type").options].find(o => o.value && o.value.split("=")[1] === p.get("type"));
+    if (opt) { S.typeParam = opt.value; $("type").value = opt.value; }
+    if (p.has("sources")) {
+      const want = p.get("sources").split(",").map(s => s.trim().toLowerCase());
+      const ids = SOURCE_DEFS.filter(d => want.includes(srcName(d.id))).map(d => d.id);
+      if (ids.length || want.includes("none")) {                // a link naming no real source keeps the defaults
+        S.enabled = new Set(ids);
+        for (const cb of $("sources").querySelectorAll("input")) {
+          cb.checked = S.enabled.has(cb.value); cb.closest(".chip").classList.toggle("on", cb.checked);
+        }
+      }
+    }
+    showSort();
+  }
+
+  // ---- wiring --------------------------------------------------------------
+  function showSort() { const s = S.sort;
+    for (const [id, v] of [["s-new","newest"], ["s-upd","mostrecent"], ["s-top","clicks"]]) {
+      $(id).classList.toggle("on", s===v);
+      $(id).setAttribute("aria-pressed", String(s===v));         // tells screen readers which view is selected
+    }
+    $("sources").classList.toggle("off", s==="clicks"); $("type").disabled = s==="clicks"; }  // the ranking always covers every source
+  showSort();
+  function setSort(s) { S.sort = s; showSort(); reload(); }
+  $("s-new").onclick = () => setSort("newest");
+  $("s-upd").onclick = () => setSort("mostrecent");
+  $("s-top").onclick = () => setSort("clicks");
+  if (COUNTER_URL) $("s-top").hidden = false;
+
+  // Report real clicks on a paper's title or [pdf] link to the counting service (it adds its own checks).
+  function onLinkClick(e) {
+    if (!COUNTER_URL || !e.isTrusted) return;                       // ignore clicks made by scripts
+    if (e.type === "auxclick" && e.button !== 1) return;            // middle-click opens a new tab; ignore other buttons
+    const a = e.target.closest("a[data-i]");
+    const r = a && S.shown[+a.dataset.i];
+    if (!r) return;
+    const body = JSON.stringify({ id:r.cid || r.id, title:r.title, authors:r.creators.slice(0, 6).join("; "), url:r.url });
+    try { navigator.sendBeacon(COUNTER_URL + "/click", new Blob([body], { type:"text/plain" })); } catch (err) {}
+  }
+  $("rows").addEventListener("click", onLinkClick);
+  $("rows").addEventListener("auxclick", onLinkClick);
+  $("sources").addEventListener("change", e => {
+    const cb = e.target;
+    if (cb.type !== "checkbox") return;
+    if (cb.checked) S.enabled.add(cb.value); else S.enabled.delete(cb.value);
+    cb.closest(".chip").classList.toggle("on", cb.checked);
+    updateUrl();
+    S.rows = null; S.err = "";
+    const j = JSON_SOURCES.find(x => x.id === cb.value);
+    if (j && cb.checked) ensureRecent(j).then(() => { if (searching()) ensureArchive(j); return fillToHorizon(); });
+    if (searching()) ensureArchives();
+    loadZWait("init").then(fillToHorizon);
+  });
+  $("type").onchange = e => { S.typeParam = e.target.value; reload(); };
+  const search = () => { S.q = $("q").value.trim(); S.author = $("author").value.trim(); reload(); };
+  $("go").onclick = search;
+  for (const id of ["q", "author"]) $(id).addEventListener("keydown", e => { if (e.key==="Enter") search(); });
+  // Emptying a search box (with its ✕, or by deleting the text) shows the list without that search straight away.
+  for (const id of ["q", "author"]) for (const ev of ["input", "search"]) $(id).addEventListener(ev, () => {
+    if (!$(id).value.trim() && (id === "q" ? S.q : S.author)) search();
+  });
+  $("more").onclick = loadMore;
+
+  // Start everything at once; each part appears as soon as it arrives. A shared address may ask for another view,
+  // a search or other sources; the ticked sources' files are fetched in any case, for when the reader switches view.
+  readUrl();
+  selectZ();                                                       // the Zenodo result set for the view asked for
+  const firstFiles = activeJson().map(ensureRecent);
+  if (COMMUNITIES.length) zFile();                                 // start the Zenodo file download straight away
+  if (S.sort === "clicks") loadClicks();
+  else {
+    if (searching()) ensureArchives();                             // a search needs the older papers too
+    Promise.all([...firstFiles, loadZ("init")]).then(fillToHorizon);
+  }
+})();
+</script>
+</body>
+</html>
