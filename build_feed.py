@@ -30,7 +30,7 @@ FEED_DAYS = 14
 MAX_ITEMS = 150
 MAX_SUMMARY = 700
 ZENODO = "https://zenodo.org/api/records"
-COMMUNITIES = [("linguistics", "Zenodo: Linguistics"), ("langscipress", "Zenodo: Language Science Press")]
+COMMUNITIES = [("linguistics", "Zenodo"), ("langscipress", "Zenodo")]   # both listed simply as "Zenodo"
 
 def when(s):
     """A timestamp from the data, as an aware datetime (the data is in UTC, sometimes without saying so)."""

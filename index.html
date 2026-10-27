@@ -97,7 +97,7 @@
     <a href="rss.html" title="Follow LingFeed in a feed reader">RSS feed</a>
   </nav>
   <h1>LingFeed</h1>
-  <p class="sub">New linguistics papers and preprints from <a href="https://lingbuzz.net/" target="_blank" rel="noopener">LingBuzz</a>, <a href="https://zenodo.org/communities/linguistics" target="_blank" rel="noopener">Zenodo (Linguistics)</a>, <a href="https://zenodo.org/communities/langscipress" target="_blank" rel="noopener">Zenodo (Language Science Press)</a>, <a href="https://osf.io/preprints/psyarxiv/discover" target="_blank" rel="noopener">PsyArXiv (Linguistics)</a>, <a href="https://osf.io/preprints/socarxiv/discover" target="_blank" rel="noopener">SocArXiv (Linguistics)</a>, and <a href="https://arxiv.org/list/cs.CL/recent" target="_blank" rel="noopener">arXiv (Computation and Language)</a>, in one stream. <span id="info"></span></p>
+  <p class="sub">New linguistics papers and preprints from <a href="https://lingbuzz.net/" target="_blank" rel="noopener">LingBuzz</a>, Zenodo (<a href="https://zenodo.org/communities/linguistics" target="_blank" rel="noopener">Linguistics</a> and <a href="https://zenodo.org/communities/langscipress" target="_blank" rel="noopener">Language Science Press</a>), <a href="https://osf.io/preprints/psyarxiv/discover" target="_blank" rel="noopener">PsyArXiv (Linguistics)</a>, <a href="https://osf.io/preprints/socarxiv/discover" target="_blank" rel="noopener">SocArXiv (Linguistics)</a>, and <a href="https://arxiv.org/list/cs.CL/recent" target="_blank" rel="noopener">arXiv (Computation and Language)</a>, in one stream. <span id="info"></span></p>
   <p class="stale" id="stale" role="status" hidden></p>
 
   <div class="controls">
@@ -132,10 +132,11 @@
 
 <script>
 (() => {
-  // To add another Zenodo community, add a line here; it appears in the Source menu automatically.
+  // The Zenodo communities LingFeed reads. All of them appear together as one source, "Zenodo" (one checkbox,
+  // one badge). To read another community, add a line here.
   const COMMUNITIES = [
-    { id:"linguistics",  badge:"Linguistics",  label:"Zenodo: Linguistics" },
-    { id:"langscipress", badge:"LangSci Press", label:"Zenodo: Language Science Press" }
+    { id:"linguistics",  badge:"Linguistics" },
+    { id:"langscipress", badge:"Language Science Press" }
   ];
   // Address of the click-counting service (see counter/README.md). Leave empty to switch click counting off.
   const COUNTER_URL = "https://lingfeed-counter.lingfeed.workers.dev";
@@ -196,14 +197,14 @@
   // ---- source checkboxes ---------------------------------------------------
   // Each source has an "on" flag for its default state (arXiv is off by default).
   const SOURCE_DEFS = [
-    ...COMMUNITIES.map(c => ({ id:"z:"+c.id, label:c.label, on:true })),
+    ...(COMMUNITIES.length ? [{ id:"zenodo", label:"Zenodo", on:true }] : []),
     ...JSON_SOURCES.map(j => ({ id:j.id, label:j.label, on:j.on !== false }))
   ];
   S.enabled = new Set(SOURCE_DEFS.filter(d => d.on).map(d => d.id));
   $("sources").innerHTML = SOURCE_DEFS.map(d =>
     `<label class="chip${d.on ? " on" : ""}"><input type="checkbox" value="${esc(d.id)}"${d.on ? " checked" : ""}> ${esc(d.label)}</label>`).join("");
 
-  const activeComms = () => COMMUNITIES.filter(c => S.enabled.has("z:"+c.id));
+  const activeComms = () => S.enabled.has("zenodo") ? COMMUNITIES : [];
   const activeJson  = () => JSON_SOURCES.filter(j => S.enabled.has(j.id));
   // ---- Zenodo result sets ----------------------------------------------------
   // One set of Zenodo results for each combination of view (latest versions, or all versions for "New"), search and
@@ -552,13 +553,9 @@
       const kind = r.clicks != null ? "exact" : dateKind(r, listedAtUpdate(r));
       const approx = kind === "exact" || kind === "observed" ? "" : "~";
       const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">Recently updated</span>' : '<span class="badge new">new</span>';
-      const srcBadge = c => {
-        const names = c.src==="zenodo" ? c.comms.map(id => COMMUNITIES.find(x => x.id===id)?.badge || id) : [];
-        return c.src==="zenodo"
-          ? `<span class="badge src-z" title="Zenodo community: ${esc(names.join(', '))}">Zenodo${COMMUNITIES.length>1 && names.length ? " · "+esc(names.join(" + ")) : ""}</span>`
+      const srcBadge = c => c.src==="zenodo" ? '<span class="badge src-z">Zenodo</span>'
           : c.src==="arxiv" ? '<span class="badge src-a">arXiv</span>'
           : c.src==="osf" ? '<span class="badge src-o">'+esc(c.provider)+'</span>' : '<span class="badge src-l">LingBuzz</span>';
-      };
       // a cross-posted paper: its main source's badge, then each other copy's badge as a link to that copy
       const srcB = !r.copies ? srcBadge(r) : srcBadge(r.copies[0]) + r.copies.slice(1).map(c =>
         safeUrl(c.url) ? `<a class="also" href="${esc(c.url)}" target="_blank" rel="noopener" title="Also posted here">${srcBadge(c)}</a>` : srcBadge(c)).join("");
@@ -792,9 +789,9 @@
     staleNotice();
     if (S.sort==="clicks") { $("info").textContent = beforeDebut() ? "" : `The ${TOP_N} papers most clicked by LingFeed visitors over the last six months, all sources together.`; return; }
     const parts = [];
-    const z = activeComms().filter(c => S.zc[c.id].total!=null)
-      .map(c => `${c.badge} ${S.zc[c.id].total.toLocaleString()}`);
-    if (z.length) parts.push("Zenodo records: " + z.join(" · "));
+    // one number for all Zenodo communities together (a paper in two communities, which is rare, counts twice)
+    const z = activeComms();
+    if (z.length && z.every(c => S.zc[c.id].total!=null)) parts.push("Zenodo records: " + z.reduce((n, c) => n + S.zc[c.id].total, 0).toLocaleString());
     for (const j of activeJson()) {
       const st = S.js[j.id];
       if (!st || st.ok === null) continue;
@@ -842,7 +839,6 @@
   // ?view=new&author=Deal&sources=lingbuzz,arxiv, so a view can be bookmarked or sent to someone.
   // Settings left at their defaults are not written, so the plain address still means the default view.
   const VIEWS = { newest:"new", mostrecent:"", clicks:"top" };
-  const srcName = id => id.replace(/^z:/, "zenodo-");             // "z:linguistics" appears as "zenodo-linguistics"
   const DEFAULT_SOURCES = SOURCE_DEFS.filter(d => d.on).map(d => d.id).join(",");
   function updateUrl() {
     const p = new URLSearchParams();
@@ -851,7 +847,7 @@
     if (S.author) p.set("author", S.author);
     if (S.typeParam) p.set("type", S.typeParam.split("=")[1]);
     const on = SOURCE_DEFS.filter(d => S.enabled.has(d.id)).map(d => d.id);
-    if (on.join(",") !== DEFAULT_SOURCES) p.set("sources", on.length ? on.map(srcName).join(",") : "none");
+    if (on.join(",") !== DEFAULT_SOURCES) p.set("sources", on.length ? on.join(",") : "none");
     const qs = p.toString().replace(/%2C/g, ",");
     try { history.replaceState(null, "", qs ? "?" + qs : location.pathname); } catch (e) {}   // some previews forbid this
   }
@@ -865,8 +861,9 @@
     const opt = [...$("type").options].find(o => o.value && o.value.split("=")[1] === p.get("type"));
     if (opt) { S.typeParam = opt.value; $("type").value = opt.value; }
     if (p.has("sources")) {
-      const want = p.get("sources").split(",").map(s => s.trim().toLowerCase());
-      const ids = SOURCE_DEFS.filter(d => want.includes(srcName(d.id))).map(d => d.id);
+      // links made before the Zenodo communities were joined name them separately ("zenodo-linguistics")
+      const want = p.get("sources").split(",").map(s => s.trim().toLowerCase().replace(/^zenodo-.*/, "zenodo"));
+      const ids = SOURCE_DEFS.filter(d => want.includes(d.id)).map(d => d.id);
       if (ids.length || want.includes("none")) {                // a link naming no real source keeps the defaults
         S.enabled = new Set(ids);
         for (const cb of $("sources").querySelectorAll("input")) {
