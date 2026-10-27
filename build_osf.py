@@ -31,7 +31,7 @@ KEEP = 100000   # effectively unlimited; the Linguistics subject has a few thous
 MAX_SUMMARY = 700
 
 def get_json(url, tries=4):
-    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator)", "Accept": "application/json"})
+    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)", "Accept": "application/json"})
     for i in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:

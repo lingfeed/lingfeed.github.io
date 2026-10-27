@@ -31,7 +31,7 @@ MONTHS = {m: i for i, m in enumerate(calendar.month_name) if m}
 MONTH_RE = re.compile(r"\b(" + "|".join(MONTHS) + r")\s+(\d{4})\b")
 
 def fetch(url, tries=4):
-    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)"})
     for i in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=30) as r:

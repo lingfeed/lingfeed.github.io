@@ -29,7 +29,7 @@ MAX_SUMMARY = 700    # characters of abstract kept, to keep arxiv.json small
 MAX_AUTHORS = 20
 
 def get(url, tries=4):
-    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)"})
     for i in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:

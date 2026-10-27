@@ -50,7 +50,7 @@ def online(args):
     for comm in ("linguistics", "langscipress"):
         try:
             q = urllib.parse.urlencode({"communities": comm, "size": 1, "sort": "oldest"})
-            req = urllib.request.Request(f"https://zenodo.org/api/records?{q}", headers={"Accept": "application/json"})
+            req = urllib.request.Request(f"https://zenodo.org/api/records?{q}", headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)", "Accept": "application/json"})
             d = json.load(urllib.request.urlopen(req, timeout=30))
             hits = d.get("hits", {}).get("hits", [])
             oldest = day(hits[0].get("created")) if hits else "?"
@@ -60,7 +60,7 @@ def online(args):
     for prov in ("psyarxiv", "socarxiv"):
         try:
             q = urllib.parse.urlencode({"filter[provider]": prov, "filter[subjects]": "584240d954be81056ceca960", "page[size]": 1})
-            req = urllib.request.Request(f"https://api.osf.io/v2/preprints/?{q}", headers={"Accept": "application/json"})
+            req = urllib.request.Request(f"https://api.osf.io/v2/preprints/?{q}", headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)", "Accept": "application/json"})
             d = json.load(urllib.request.urlopen(req, timeout=30))
             total = (d.get("meta") or {}).get("total") or ((d.get("links") or {}).get("meta") or {}).get("total")
             print(f"   OSF {prov} (Linguistics filter): total {total}")
