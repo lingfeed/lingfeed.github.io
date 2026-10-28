@@ -3,7 +3,7 @@
 
     python3 build_zenodo.py
 
-For each Zenodo community the site shows (Linguistics, Language Science Press) it saves every record created
+For each Zenodo community the site shows (Linguistics, Language Science Press, LingFeed) it saves every record created
 in the last RECENT_DAYS days, ALL versions (the page's "New" view needs first versions, "New and Updated" the
 latest ones; the page picks). Records are trimmed to the fields the page uses, in the same shape Zenodo sends,
 so the page reads them exactly as it reads Zenodo's own answers. It also saves each community's totals.
@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 API = "https://zenodo.org/api/records"
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "zenodo-recent.json")
-COMMUNITIES = ["linguistics", "langscipress"]   # same ids as COMMUNITIES in index.html
+COMMUNITIES = ["linguistics", "langscipress", "lingfeed"]   # same ids as COMMUNITIES in index.html
 RECENT_DAYS = 60       # same period as the other sources' recent files
 PAGE = 25              # Zenodo's limit per request without an account
 MAX_PAGES = 120        # safety limit per community (3,000 records)

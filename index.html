@@ -137,7 +137,8 @@
   // one badge). To read another community, add a line here.
   const COMMUNITIES = [
     { id:"linguistics",  badge:"Linguistics" },
-    { id:"langscipress", badge:"Language Science Press" }
+    { id:"langscipress", badge:"Language Science Press" },
+    { id:"lingfeed",     badge:"LingFeed" }
   ];
   // Address of the click-counting service (see counter/README.md). Leave empty to switch click counting off.
   const COUNTER_URL = "https://lingfeed-counter.lingfeed.workers.dev";
@@ -699,7 +700,7 @@
       res = await fetch(`${API}?${p}` + (ctx.type ? "&"+ctx.type : ""), {headers:{Accept:"application/json"}});
       if (res.status !== 400 || used === "exact") break;
       // Zenodo may refuse wildcards at the start of a word: fall back to word-start matching, then exact words.
-      // Both communities are asked at once, so only step down if no other request has already done so.
+      // All communities are asked at once, so only step down if no other request has already done so.
       if (zMode === used) {
         zMode = used === "contains" ? "prefix" : "exact";
         changed = true;
@@ -722,7 +723,7 @@
   }
 
   // ---- Zenodo's recent records from the site's own file ----------------------
-  // zenodo-recent.json (written every 15 minutes by build_zenodo.py) holds the last 60 days of both communities,
+  // zenodo-recent.json (written every 15 minutes by build_zenodo.py) holds the last 60 days of every community,
   // all versions. With no search and no type chosen, the first screen is filled from it instead of a dozen rounds
   // of requests to Zenodo; "Load more" then continues live from where the file ends. If the file is missing or
   // more than two days old, everything is asked live as before.

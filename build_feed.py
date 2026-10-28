@@ -4,8 +4,8 @@
     python3 build_feed.py
 
 The feed lists papers first posted, or given a new version, in the last FEED_DAYS days (at most
-MAX_ITEMS), newest first, from the same sources the site shows by default: Zenodo (Linguistics and
-Language Science Press), LingBuzz, PsyArXiv and SocArXiv. arXiv is left out, as on the site, because
+MAX_ITEMS), newest first, from the same sources the site shows by default: Zenodo (Linguistics,
+Language Science Press and LingFeed), LingBuzz, PsyArXiv and SocArXiv. arXiv is left out, as on the site, because
 its ~200 papers a day would swamp the feed. A paper given a new version appears again, titled
 "Updated: ...".
 
@@ -30,7 +30,7 @@ FEED_DAYS = 14
 MAX_ITEMS = 150
 MAX_SUMMARY = 700
 ZENODO = "https://zenodo.org/api/records"
-COMMUNITIES = [("linguistics", "Zenodo"), ("langscipress", "Zenodo")]   # both listed simply as "Zenodo"
+COMMUNITIES = [("linguistics", "Zenodo"), ("langscipress", "Zenodo"), ("lingfeed", "Zenodo")]   # all listed simply as "Zenodo"
 
 def when(s):
     """A timestamp from the data, as an aware datetime (the data is in UTC, sometimes without saying so)."""

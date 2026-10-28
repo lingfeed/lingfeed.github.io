@@ -47,7 +47,7 @@ def lingbuzz_extra(recs):
 
 def online(args):
     print("\n== Online totals")
-    for comm in ("linguistics", "langscipress"):
+    for comm in ("linguistics", "langscipress", "lingfeed"):
         try:
             q = urllib.parse.urlencode({"communities": comm, "size": 1, "sort": "oldest"})
             req = urllib.request.Request(f"https://zenodo.org/api/records?{q}", headers={"User-Agent": "LingFeed/1.0 (preprint aggregator; https://lingfeed.github.io; lingfeedteam@gmail.com)", "Accept": "application/json"})
