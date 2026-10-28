@@ -45,7 +45,7 @@
   .seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
   .seg button { border:0; border-radius:0; cursor:pointer; } .seg button.on { background:var(--link); color:var(--bg); }
   button.go { cursor:pointer; }
-  .topnav { display:flex; justify-content:flex-end; gap:18px; margin-bottom:8px; font:14px system-ui,sans-serif; }
+  .topnav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px 18px; margin-bottom:8px; font:14px system-ui,sans-serif; }
   .topnav a { white-space:nowrap; }
   .checks.off { opacity:.4; pointer-events:none; }
   .checks { display:flex; flex-wrap:wrap; gap:6px; }
@@ -95,6 +95,7 @@
     <a href="why.html">Why LingFeed?</a>
     <a href="about.html">How it works</a>
     <a href="rss.html" title="Follow LingFeed in a feed reader">RSS feed</a>
+    <a href="post.html">Post a paper</a>
   </nav>
   <h1>LingFeed</h1>
   <p class="sub">New linguistics papers and preprints from <a href="https://lingbuzz.net/" target="_blank" rel="noopener">LingBuzz</a>, <a href="https://zenodo.org/" target="_blank" rel="noopener">Zenodo (selected communities)</a>, <a href="https://osf.io/preprints/psyarxiv/discover" target="_blank" rel="noopener">PsyArXiv (Linguistics)</a>, <a href="https://osf.io/preprints/socarxiv/discover" target="_blank" rel="noopener">SocArXiv (Linguistics)</a>, and <a href="https://arxiv.org/list/cs.CL/recent" target="_blank" rel="noopener">arXiv (Computation and Language)</a>, in one stream. <span id="info"></span></p>
