@@ -449,6 +449,7 @@
   const archiveMissing = j => { const st = S.js[j.id]; return !!(st && st.hasArchive && !st.archiveLoaded && !st.archiveFailed); };
   // How far back the first screen reaches: the newest "recent" boundary among the ticked sources that have an archive.
   const RECENT_MS = 60 * 864e5;
+  const UPDATED_RECENT_MS = 14 * 864e5;   // how long a new version counts as "Recently updated"
   function recentHorizon() {
     const ss = activeJson().map(j => S.js[j.id]).filter(st => st && st.since != null).map(st => st.since);
     if (ss.length) return Math.max(...ss);
@@ -557,10 +558,11 @@
       const when = listedDate(r);
       const kind = r.clicks != null ? "exact" : dateKind(r, listedAtUpdate(r));
       const approx = kind === "exact" || kind === "observed" ? "" : "~";
-      // "new" / "Recently updated" only for the last 60 days; an older revised paper just says "Updated", an older one nothing
-      const recent = Date.now() - new Date(when || 0).getTime() < RECENT_MS;
-      const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">' + (recent ? "Recently updated" : "Updated") + '</span>'
-          : recent ? '<span class="badge new">new</span>' : "";
+      // "Recently updated" only for new versions in the last 14 days (UPDATED_RECENT_MS), else just "Updated";
+      // "new" only for the last 60 days (RECENT_MS), older papers get no badge
+      const age = Date.now() - new Date(when || 0).getTime();
+      const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">' + (age < UPDATED_RECENT_MS ? "Recently updated" : "Updated") + '</span>'
+          : age < RECENT_MS ? '<span class="badge new">new</span>' : "";
       const srcBadge = c => c.src==="zenodo" ? '<span class="badge src-z">Zenodo</span>'
           : c.src==="arxiv" ? '<span class="badge src-a">arXiv</span>'
           : c.src==="osf" ? '<span class="badge src-o">'+esc(c.provider)+'</span>' : '<span class="badge src-l">LingBuzz</span>';
