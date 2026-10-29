@@ -62,7 +62,7 @@ def lingbuzz_items():
             continue
         pid = r["id"]
         out.append(item("l" + pid, r.get("title", ""), r.get("authors") or [], f"https://lingbuzz.net/lingbuzz/{pid}",
-                        listed, changed, "LingBuzz", "", r.get("updated") if changed else "v1"))
+                        listed, changed, "LingBuzz", r.get("abstract", ""), r.get("updated") if changed else "v1"))
     return out
 
 def osf_items():

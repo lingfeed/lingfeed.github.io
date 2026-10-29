@@ -47,7 +47,7 @@ jobs:
           mkdir _site
           cp *.html *.json *.xml *.xsl *.ico *.png _site/
           # working copies and records the page never reads
-          rm -f _site/lingbuzz.json _site/osf.json _site/lingbuzz-status.json _site/package.json _site/package-lock.json
+          rm -f _site/lingbuzz.json _site/osf.json _site/lingbuzz-status.json _site/lingbuzz-abstracts.json _site/lingbuzz-abstracts-old.json _site/package.json _site/package-lock.json
           ls -la _site
       - uses: actions/configure-pages@v6
         if: steps.check.outputs.skip != 'true'

@@ -256,7 +256,8 @@
     return { src:"lingbuzz", id:"l"+r.id, title:r.title, creators:r.authors||[], type:"Preprint",
       created:r.created, updated:r.updated, changed:r.revised !== undefined ? !!r.revised : r.status==="changed",
       url:r.url||("https://lingbuzz.net/lingbuzz/"+r.id), pdf:r.pdf||("https://lingbuzz.net/lingbuzz/"+r.id+"/current.pdf"),
-      doi:"", desc:"", keywords:r.keywords||[], journal:"",
+      doi:"", desc:r.abstract||"", keywords:r.keywords||[], journal:"",
+      descMore:r.abstract_cut ? (r.url||("https://lingbuzz.net/lingbuzz/"+r.id)) : "",   // older papers: abstract shortened
       cs:r.created_src, us:r.updated_src };
   }
 
@@ -517,7 +518,8 @@
       created:first.created, cFrom:first,
       changed:!!newest, updated:newest ? newest.updated : primary.updated, uFrom:newest || primary,
       keywords:[...new Set(copies.flatMap(c => c.keywords || []))],
-      desc:primary.desc || copies.map(c => c.desc).find(Boolean) || "",
+      desc:(primary.desc ? primary : copies.find(c => c.desc) || primary).desc || "",
+      descMore:(primary.desc ? primary : copies.find(c => c.desc) || primary).descMore || "",
       doi:primary.doi || copies.map(c => c.doi).find(Boolean) || "",
       journal:primary.journal || copies.map(c => c.journal).find(Boolean) || "",
       pdf:primary.pdf || others.map(c => c.pdf).find(Boolean) || null };
@@ -574,7 +576,7 @@
         <td class="title">${safeUrl(r.url) ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" data-i="${idx}">${esc(r.title)}</a>` : `<span class="t">${esc(r.title)}</span>`}
           <div class="meta">${metaHtml}</div>
           ${kws?`<div class="kw">${kws}</div>`:""}
-          ${r.desc?`<details class="abs"><summary>abstract</summary><div>${esc(r.desc)}</div></details>`:""}
+          ${r.desc?`<details class="abs"><summary>abstract</summary><div>${esc(r.desc)}${safeUrl(r.descMore) ? ` <a href="${esc(r.descMore)}" target="_blank" rel="noopener" data-i="${idx}">full abstract on LingBuzz</a>` : ""}</div></details>`:""}
         </td></tr>`;
     }).join("");
     const busy = S.loading || S.pending > 0;

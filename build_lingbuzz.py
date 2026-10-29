@@ -18,6 +18,16 @@ One-off history backfill:
   are spread across each month in id order (ids are sequential). Polite delay between requests (--delay).
   Safe to re-run; it resumes where the stored data ends and skips known papers.
 
+Abstracts (shown on the page like Zenodo's):
+  Whenever the scraper reads a paper's own page (new papers, new versions, edits, gap papers, backfill), it
+  keeps the abstract printed there in lingbuzz-abstracts.json. Older papers' abstracts are fetched once, by hand:
+    python3 build_lingbuzz.py --abstracts        # every stored paper not yet done (~10,000 pages, ~4 hours)
+    python3 build_lingbuzz.py --abstracts 300    # only the 300 most recently listed papers
+  This only reads paper pages and writes lingbuzz-abstracts-old.json (nothing else), so it can run on your own
+  computer while the scheduled job keeps running; Control-C stops it, and running it again continues.
+  Upload that one file afterwards. The page files get the abstracts at the job's next run: in full for the
+  last 60 days, shortened to ARCHIVE_ABSTRACT_CHARS for older papers (with a link to the rest).
+
 Every run ends with a summary line: how many papers were added and how many got a new version.
 """
 import argparse, bisect, calendar, html, json, os, re, statistics, sys, time, urllib.request
@@ -26,6 +36,10 @@ from datetime import datetime, timedelta, timezone
 SOURCE = "https://lingbuzz.net"
 LISTING = "https://ling.auf.net/lingbuzz/_listing?community=The%20Buzz&start={start}"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lingbuzz.json")
+ABSTRACTS = os.path.join(os.path.dirname(OUT), "lingbuzz-abstracts.json")          # written by the scheduled job
+ABSTRACTS_OLD = os.path.join(os.path.dirname(OUT), "lingbuzz-abstracts-old.json")  # written only by --abstracts
+ARCHIVE_ABSTRACT_CHARS = 700   # older papers' abstracts are shortened to this in lingbuzz-archive.json (size)
+ABS_SEEN = {}                  # abstracts read in this run, by paper id ("" = the page has none)
 KEEP = 50000  # effectively unlimited: LingBuzz has about 10,500 papers in total
 MONTHS = {m: i for i, m in enumerate(calendar.month_name) if m}
 MONTH_RE = re.compile(r"\b(" + "|".join(MONTHS) + r")\s+(\d{4})\b")
@@ -79,12 +93,79 @@ def spaced_text(fragment):
     """Like text(), but tags become spaces so adjacent words don't fuse."""
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", fragment))).strip()
 
+def abstract_of(page):
+    """The abstract on a paper's own page: the text between the title block (</center>) and the table that
+    starts with "Format:". "" if there is none. LaTeX-style ``quotes'' become curly quotes."""
+    m = re.search(r"</center>(.*?)<table", page, re.S | re.I)
+    if not m:
+        return ""
+    s = spaced_text(m.group(1)).replace("``", "\u201c").replace("''", "\u201d")
+    return s[:10000] if len(s) >= 20 else ""
+
+def load_abstracts(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f).get("abstracts", {})
+    except (OSError, ValueError):
+        return {}
+
+def save_abstracts(path, abstracts, now):
+    abstracts = dict(sorted(abstracts.items()))
+    if os.path.exists(path) and load_abstracts(path) == abstracts:
+        return   # unchanged: don't rewrite (or commit) the file
+    write_json(path, {"generated": now.isoformat(timespec="seconds"), "abstracts": abstracts})
+
+def all_abstracts():
+    """Both abstract files together; the scheduled job's copy wins unless it is empty."""
+    out = load_abstracts(ABSTRACTS_OLD)
+    out.update({k: v for k, v in load_abstracts(ABSTRACTS).items() if v or k not in out})
+    return out
+
+def fetch_old_abstracts(db, limit, delay, now):
+    """--abstracts: read the pages of stored papers that have no abstract on file yet, most recently listed
+    first, into lingbuzz-abstracts-old.json. Touches no other file. Saves every 25 papers; resumable."""
+    have, old = load_abstracts(ABSTRACTS), load_abstracts(ABSTRACTS_OLD)
+    order = sorted((r for r in db.values() if str(r["id"]).isdigit()),
+                   key=lambda r: (r.get("updated") or r.get("created") or "", r["id"]), reverse=True)
+    if limit:
+        order = order[:limit]
+    todo = [r["id"] for r in order if r["id"] not in have and r["id"] not in old]
+    if not todo:
+        print("All of these papers already have their abstracts on file. Nothing to do.")
+        return
+    mins = len(todo) * (delay + 0.5) / 60
+    print(f"Reading {len(todo)} LingBuzz paper pages, one every {delay:g} s (about "
+          f"{f'{mins / 60:.1f} hours' if mins >= 90 else 'a minute' if mins < 1.5 else f'{round(mins)} minutes'}).")
+    print("Press Control-C to stop at any time; run the same command again to continue where it stopped.")
+    found = none = failed = 0
+    try:
+        for k, pid in enumerate(todo, 1):
+            time.sleep(delay)
+            try:
+                page = fetch(f"{SOURCE}/lingbuzz/{pid}")
+            except Exception as e:
+                print(f"  {pid}: could not read its page ({e}); will try again next time")
+                failed += 1
+                continue
+            old[pid] = abstract_of(page)
+            found, none = found + bool(old[pid]), none + (not old[pid])
+            if k % 25 == 0:
+                save_abstracts(ABSTRACTS_OLD, old, now)
+            if k % 100 == 0:
+                print(f"  ... {k} of {len(todo)} done")
+    except KeyboardInterrupt:
+        print("\nStopped. What was read so far is saved; run the same command again to continue.")
+    save_abstracts(ABSTRACTS_OLD, old, now)
+    print(f"LingBuzz abstracts: {found} found, {none} pages without an abstract"
+          + (f", {failed} pages not readable" if failed else "") + f" -> {os.path.basename(ABSTRACTS_OLD)}")
+
 def paper_info(pid):
     """Return (created_month, updated_month, revised, keywords, n_versions); months are (year, month).
 
     The month printed under the authors is the date of the CURRENT version. The
     'previous versions' list (v1 [May 2026] ...) gives when the paper was first posted."""
     page = fetch(f"{SOURCE}/lingbuzz/{pid}")
+    ABS_SEEN[pid] = abstract_of(page)
     txt = spaced_text(page)
     m = re.search(r"<br\s*/?>\s*(" + "|".join(MONTHS) + r")\s+(\d{4})\s*</", page) or MONTH_RE.search(txt)
     updated = (int(m.group(2)), MONTHS[m.group(1)]) if m else None
@@ -200,10 +281,16 @@ def write_public(db, now):
     cutoff = now - timedelta(days=RECENT_DAYS)
     cut = cutoff.timestamp()
     recent, archive = [], []
+    abstracts = all_abstracts()
     for r in db.values():
         slim = {k: r[k] for k in PUBLIC_FIELDS if r.get(k) is not None}
         listed_recently = bool(r.get("created") and to_ts(r["created"]) >= cut) or \
                           bool(r.get("revised") and r.get("updated") and to_ts(r["updated"]) >= cut)
+        a = abstracts.get(r["id"])
+        if a:
+            if not listed_recently and len(a) > ARCHIVE_ABSTRACT_CHARS:   # older papers: shortened, to keep the file small
+                a, slim["abstract_cut"] = a[:ARCHIVE_ABSTRACT_CHARS].rsplit(" ", 1)[0] + " …", True
+            slim["abstract"] = a
         (recent if listed_recently else archive).append(slim)
     recent.sort(key=lambda r: r.get("updated") or "", reverse=True)
     archive.sort(key=lambda r: r.get("created") or r.get("updated") or "", reverse=True)
@@ -479,12 +566,17 @@ def main(front_page=None):
     ap.add_argument("--versions", action="store_true", help="store the version count of every revised paper (about 2,000 requests), so later changes can be told from edits exactly")
     ap.add_argument("--check-listing", action="store_true", help="diagnostic: how is LingBuzz's listing ordered, and can it date revisions? (it is ordered by the author-written date, so it can't)")
     ap.add_argument("--gaps", action="store_true", help="report which paper ids are not stored, then exit")
+    ap.add_argument("--abstracts", type=int, nargs="?", const=0, default=None, metavar="N",
+                    help="only fetch abstracts of stored papers that have none on file (the N most recently listed; all if N is left out) into lingbuzz-abstracts-old.json, then exit")
     args = ap.parse_args()
 
     now = datetime.now(timezone.utc)
     db, meta = load()
     if args.gaps:
         report_gaps(db)
+        return
+    if args.abstracts is not None:
+        fetch_old_abstracts(db, args.abstracts, args.delay, now)
         return
     seeding = not db  # first ever run: everything on the front page predates us
     before = set(db)            # for the summary: papers stored before this run
@@ -519,7 +611,7 @@ def main(front_page=None):
                     nv = page_nver(rec["id"])
                     rec["nver"], rec["revised"] = nv or 1, bool(nv and nv > 1)
                 else:
-                    rec["nver"], rec["revised"] = 1, False
+                    rec["nver"], rec["revised"] = 1, False   # its page (and abstract) is read by mark_estimated()
             db[rec["id"]] = rec
         else:
             old.update(title=rec["title"], authors=rec["authors"])
@@ -565,6 +657,8 @@ def main(front_page=None):
         else:
             print("listing not walked far enough for the check; use a larger --backfill")
     n = save(db, now, front, unlisted)
+    if ABS_SEEN:
+        save_abstracts(ABSTRACTS, {**load_abstracts(ABSTRACTS), **ABS_SEEN}, now)
     write_public(db, now)
     moved = sum(1 for r in db.values() if r.get("up_month") and r.get("month")
                 and abs(r["up_month"][0] * 12 + r["up_month"][1] - r["month"][0] * 12 - r["month"][1]) >= 2)
