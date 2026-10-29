@@ -557,7 +557,10 @@
       const when = listedDate(r);
       const kind = r.clicks != null ? "exact" : dateKind(r, listedAtUpdate(r));
       const approx = kind === "exact" || kind === "observed" ? "" : "~";
-      const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">Recently updated</span>' : '<span class="badge new">new</span>';
+      // "new" / "Recently updated" only for the last 60 days; an older revised paper just says "Updated", an older one nothing
+      const recent = Date.now() - new Date(when || 0).getTime() < RECENT_MS;
+      const badge = r.clicks != null ? "" : listedAtUpdate(r) ? '<span class="badge chg">' + (recent ? "Recently updated" : "Updated") + '</span>'
+          : recent ? '<span class="badge new">new</span>' : "";
       const srcBadge = c => c.src==="zenodo" ? '<span class="badge src-z">Zenodo</span>'
           : c.src==="arxiv" ? '<span class="badge src-a">arXiv</span>'
           : c.src==="osf" ? '<span class="badge src-o">'+esc(c.provider)+'</span>' : '<span class="badge src-l">LingBuzz</span>';
