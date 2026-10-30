@@ -86,6 +86,7 @@
     tr.item td.date  { order:4; }
     tr.item td.pdf   { order:5; }
     #type, .rtype { display:none; }      /* no resource-type menu, and no "Preprint" label on cards, on phones */
+    .rtype.thesis { display:inline; }    /* but "Thesis" is shown */
   }
 </style>
 <!-- Cloudflare Web Analytics (visitor counts; no cookies) --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "eb429568457646f2bc899fa77c7d4ebe"}'></script>
@@ -253,7 +254,7 @@
       doi:h.doi||m.doi, desc:strip(m.description), keywords:Array.isArray(kw)?kw:[], journal:m.journal?.title||"" };
   }
   function normL(r) {
-    return { src:"lingbuzz", id:"l"+r.id, title:r.title, creators:r.authors||[], type:"Preprint",
+    return { src:"lingbuzz", id:"l"+r.id, title:r.title, creators:r.authors||[], type:r.thesis ? "Thesis" : "Preprint",
       created:r.created, updated:r.updated, changed:r.revised !== undefined ? !!r.revised : r.status==="changed",
       url:r.url||("https://lingbuzz.net/lingbuzz/"+r.id), pdf:r.pdf||("https://lingbuzz.net/lingbuzz/"+r.id+"/current.pdf"),
       doi:"", desc:r.abstract||"", keywords:r.keywords||[], journal:"",
@@ -461,8 +462,10 @@
     const act = activeComms();
     let zs = zenodoItems(act);
     let ls = activeJson().flatMap(jsonItems);
-    // LingBuzz and arXiv items are all preprints; hide them when a non-preprint type is chosen
-    if (S.typeParam && S.typeParam!=="subtype=preprint") ls = [];
+    // File-based items are preprints, except LingBuzz papers recognised as theses (type "Thesis"): "Preprints"
+    // shows the others, "Theses" only those, and any other type none of them
+    if (S.typeParam) ls = S.typeParam === "subtype=preprint" ? ls.filter(r => r.type !== "Thesis")
+                        : S.typeParam === "subtype=thesis" ? ls.filter(r => r.type === "Thesis") : [];
     // Zenodo posts a new version as a separate record, whose date is the version's, not the paper's first
     // posting; the first version is its own record, so in "New" later versions would be listed twice
     if (S.sort==="newest") zs = zs.filter(r => !r.changed);
@@ -572,7 +575,7 @@
       const kws = r.keywords.slice(0,6).map(esc).join(" · ");
       const metaRest = [r.journal ? esc(r.journal) : "",
         r.doi ? `<a href="https://doi.org/${esc(r.doi)}" target="_blank" rel="noopener" data-i="${idx}">${esc(r.doi)}</a>` : ""].filter(Boolean).join(" · ");
-      const metaHtml = (r.type ? `<span class="rtype">${esc(r.type)}${metaRest ? " · " : ""}</span>` : "") + metaRest;
+      const metaHtml = (r.type ? `<span class="rtype${r.type === "Thesis" ? " thesis" : ""}">${esc(r.type)}${metaRest ? " · " : ""}</span>` : "") + metaRest;
       return `<tr class="item">
         <td class="date" title="${DATE_NOTE[kind]}">${r.clicks != null ? "#"+r.rank+" · "+r.clicks.toLocaleString()+" clicks" : approx+esc(fmt(when))}</td>
         <td class="auth">${r.creators.length ? r.creators.map(esc).join("; ") : "—"}</td>

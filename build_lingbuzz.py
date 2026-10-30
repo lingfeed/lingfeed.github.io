@@ -108,6 +108,30 @@ def published_of(page):
     m = re.search(r"Published in:\s*</td>\s*<td[^>]*>(.*?)</td>", page, re.S | re.I)
     return spaced_text(m.group(1))[:500] if m else ""
 
+# ---- theses -------------------------------------------------------------------------------------------
+# A LingBuzz paper is listed as a thesis (type "Thesis" on the page, under "Theses" in its type menu, not under
+# "Preprints") when its "Published in" text names a thesis as a whole word (in several languages), or its title
+# marks it as one in brackets or at the very end ("... [PhD thesis]", "... (Dissertation)", "... - Master Thesis").
+# Not when the text or title says it is only part of one ("Chapter 4 of my PhD thesis", "based on my dissertation").
+# Checked by hand against all 10,287 papers on 29 Oct 2026: 360 tagged, no false hits found. Not caught: theses
+# whose "Published in" is empty or only a university name and whose title doesn't say so.
+THESIS_WORD = re.compile(r"\b(dissertations?|diss\.|thesis|theses|doctoral|doctorate|habilitation|proefschrift|thèse|tesi|tese|"
+                         r"tesis|dissertação|tesina|doktorarbeit|magisterarbeit|masterarbeit|diplomarbeit|bachelorarbeit|mémoire)\b", re.I)
+THESIS_PART = re.compile(r"chapter|\bch\.|based on|\bpart( \w+)? of|section of|excerpt|adapted from|revised (version )?of|"
+                         r"derived from|follow[- ]?up|appendix|proposal|prospectus|qualifying|generals? paper|handout|\bslides\b|\btalk\b", re.I)
+_DEG = r"(?:ph\.?\s?d\.?|doctoral|master'?s?|m\.?a\.?|mphil|mres|b\.?a\.?|honou?rs|undergraduate|senior)"
+_TW = r"(?:thesis|dissertation|diss\.)"
+THESIS_TITLE = re.compile(rf"[\[(][^\])]*\b{_TW}[^\])]*[\])]|(?:[.:\-–—]\s*|\s){_DEG}\s*{_TW}\s*\.?\s*$|[.:\-–—]\s*{_TW}\s*\.?\s*$|^{_TW}\s*:", re.I)
+
+def is_thesis(published, title):
+    if published and THESIS_WORD.search(published):
+        return not THESIS_PART.search(published)
+    return bool(title and THESIS_TITLE.search(title) and not THESIS_PART.search(title))
+
+def all_published():
+    """Both files' "Published in" texts; the scheduled job's copy wins."""
+    return {**load_page_file(ABSTRACTS_OLD)[1], **load_page_file(ABSTRACTS)[1]}
+
 def load_page_file(path):
     """(abstracts, published) from lingbuzz-abstracts.json or lingbuzz-abstracts-old.json, each by paper id."""
     try:
@@ -293,11 +317,13 @@ def write_public(db, now):
     cutoff = now - timedelta(days=RECENT_DAYS)
     cut = cutoff.timestamp()
     recent, archive = [], []
-    abstracts = all_abstracts()
+    abstracts, published = all_abstracts(), all_published()
     for r in db.values():
         slim = {k: r[k] for k in PUBLIC_FIELDS if r.get(k) is not None}
         listed_recently = bool(r.get("created") and to_ts(r["created"]) >= cut) or \
                           bool(r.get("revised") and r.get("updated") and to_ts(r["updated"]) >= cut)
+        if is_thesis(published.get(r["id"], ""), r.get("title", "")):
+            slim["thesis"] = True
         a = abstracts.get(r["id"])
         if a:
             if not listed_recently and len(a) > ARCHIVE_ABSTRACT_CHARS:   # older papers: shortened, to keep the file small
