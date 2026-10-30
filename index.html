@@ -708,7 +708,9 @@
       // Zenodo normally returns only each paper's latest version. "New" lists papers at their first posting,
       // so there it asks for every version and safeItems() keeps only the first ones.
       if (ctx.all) p.set("all_versions", "true");
-      res = await fetch(`${API}?${p}` + (ctx.type ? "&"+ctx.type : ""), {headers:{Accept:"application/json"}});
+      // Zenodo ignores a subtype on its own (it then returns every record), so subtypes go with their main type
+      const tp = !ctx.type ? "" : "&" + (ctx.type.startsWith("subtype=") ? "type=publication&" : "") + ctx.type;
+      res = await fetch(`${API}?${p}${tp}`, {headers:{Accept:"application/json"}});
       if (res.status !== 400 || used === "exact") break;
       // Zenodo may refuse wildcards at the start of a word: fall back to word-start matching, then exact words.
       // All communities are asked at once, so only step down if no other request has already done so.
