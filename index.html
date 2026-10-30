@@ -186,8 +186,17 @@
   // Zenodo query: free text AND author. Author words must all occur in one creator name, in any
   // order ("Last, First" or "First Last"). Both the current and the legacy creator field names are
   // listed; Elasticsearch ignores a field name that doesn't exist.
+  // How each choice in the type menu is asked of Zenodo. Zenodo ignores a subtype on its own (it then returns every
+  // record), so subtypes go with their main type. Zenodo calls theses "dissertation", and keeps conference papers and
+  // conference proceedings apart; the menu's "Conference papers" asks for both, through the search query.
+  const Z_TYPE_QUERY = { "subtype=conferencepaper":
+    "metadata.resource_type.id:(publication-conferencepaper OR publication-conferenceproceeding)" };
+  const Z_TYPE_PARAMS = { "subtype=thesis":"type=publication&subtype=dissertation" };
+  const zTypeParams = t => !t || Z_TYPE_QUERY[t] ? "" :
+    "&" + (Z_TYPE_PARAMS[t] || (t.startsWith("subtype=") ? "type=publication&" + t : t));
   function zenodoQuery(ctx) {
     const parts = [];
+    if (Z_TYPE_QUERY[ctx.type]) parts.push(Z_TYPE_QUERY[ctx.type]);
     if (ctx.q) { const e = compiled(ctx.q).es(zMode); if (e) parts.push(e); }
     const toks = ctx.author.split(/[^\p{L}\p{N}\p{M}*?~]+/u).filter(Boolean)
       .map(t => /[*?~]/.test(t) ? t.toLowerCase() : partial(t.toLowerCase(), zMode));
@@ -708,8 +717,7 @@
       // Zenodo normally returns only each paper's latest version. "New" lists papers at their first posting,
       // so there it asks for every version and safeItems() keeps only the first ones.
       if (ctx.all) p.set("all_versions", "true");
-      // Zenodo ignores a subtype on its own (it then returns every record), so subtypes go with their main type
-      const tp = !ctx.type ? "" : "&" + (ctx.type.startsWith("subtype=") ? "type=publication&" : "") + ctx.type;
+      const tp = zTypeParams(ctx.type);
       res = await fetch(`${API}?${p}${tp}`, {headers:{Accept:"application/json"}});
       if (res.status !== 400 || used === "exact") break;
       // Zenodo may refuse wildcards at the start of a word: fall back to word-start matching, then exact words.
