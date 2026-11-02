@@ -113,13 +113,10 @@
     <select id="type" aria-label="Resource type">
       <option value="">All types</option>
       <option value="subtype=preprint">Preprints</option>
-      <option value="subtype=article">Journal articles</option>
-      <option value="subtype=conferencepaper">Conference papers</option>
       <option value="subtype=thesis">Theses</option>
       <option value="subtype=book">Books</option>
-      <option value="subtype=section">Book chapters</option>
-      <option value="type=presentation">Presentations</option>
       <option value="type=dataset">Datasets</option>
+      <option value="type=other">Other</option>
     </select>
     <input id="q" type="search" placeholder="Search title, keywords, abstract…" title="Partial words match. * and ? are wildcards, &quot;tone sandhi&quot; = phrase, AND / OR / NOT / -word, title:tone. See How it works.">
     <input id="author" type="search" placeholder="Search author…" aria-label="Author" title="Every word must match part of one author’s name, in any order. * and ? are wildcards.">
@@ -187,10 +184,12 @@
   // order ("Last, First" or "First Last"). Both the current and the legacy creator field names are
   // listed; Elasticsearch ignores a field name that doesn't exist.
   // How each choice in the type menu is asked of Zenodo. Zenodo ignores a subtype on its own (it then returns every
-  // record), so subtypes go with their main type. Zenodo calls theses "dissertation", and keeps conference papers and
-  // conference proceedings apart; the menu's "Conference papers" asks for both, through the search query.
-  const Z_TYPE_QUERY = { "subtype=conferencepaper":
-    "metadata.resource_type.id:(publication-conferencepaper OR publication-conferenceproceeding)" };
+  // record), so subtypes go with their main type. Zenodo calls theses "dissertation". "Other" is everything that is
+  // not one of the four named choices (preprint, thesis, book, dataset): journal articles, conference papers, book
+  // chapters, presentations, posters, reports, software, videos and any kind Zenodo adds later. It is asked through
+  // the search query, as "not any of those four", so no record can fall between the choices.
+  const Z_TYPE_QUERY = { "type=other":
+    "(NOT metadata.resource_type.id:(publication-preprint OR publication-dissertation OR publication-book OR dataset))" };
   const Z_TYPE_PARAMS = { "subtype=thesis":"type=publication&subtype=dissertation" };
   const zTypeParams = t => !t || Z_TYPE_QUERY[t] ? "" :
     "&" + (Z_TYPE_PARAMS[t] || (t.startsWith("subtype=") ? "type=publication&" + t : t));
